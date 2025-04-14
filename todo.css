@@ -1,0 +1,647 @@
+/* Reset Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+
+/* Container that holds the sidebars and main content */
+.container {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    position: relative;
+}
+
+/* Left Column: Contains two sidebars */
+.left-column {
+    display: flex;
+    flex-direction: row;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+
+/* Sidebar: Navigation Icons (First Sidebar) */
+.sidebar-main {
+    width: 100px;
+    background: #e0e0e0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    flex-shrink: 0;
+    padding-top: 20px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.sidebar-main nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sidebar-main nav ul li {
+    margin-bottom: 30px;
+}
+
+.sidebar-main nav ul li a img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    transition: transform 0.2s ease-in-out;
+}
+
+.sidebar-main nav ul li a img:hover {
+    transform: scale(1.1);
+}
+
+/* Sidebar: Task Management (Second Sidebar) */
+.sidebar-left {
+    width: 220px;
+    background: #f4f4f4;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    height: 100%;
+    overflow-y: auto;
+}
+
+/* Sidebar Menu Links */
+.sidebar-left .menu {
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+}
+
+.sidebar-left .menu a {
+    text-decoration: none;
+    color: black;
+    padding: 10px 0;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sidebar-left .menu a img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+/* Separator line */
+.separator-line {
+    border-top: 1px solid #ccc;
+    margin: 10px 0;
+}
+
+/* "Today" Title beside Sidebars */
+.today-title {
+    font-size: 25px;
+    font-weight: bold;
+    color: black;
+    margin-bottom: 20px;
+}
+
+/* Main Content */
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 40px 20px 20px;
+    min-height: 100vh;
+    overflow-y: auto;
+}
+
+/* To-Do Container */
+.todo-container {
+    width: 100%;
+    max-width: 500px;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Input Section */
+.input-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 15px;
+    width: 100%;
+    max-width: 600px;
+}
+
+/* Task Title Box */
+#task-title {
+    font-size: 14px;
+    color: black;
+    font-weight: bold;
+    padding: 8px;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    resize: none;
+    min-height: 30px;
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+/* Task Description Box */
+#task-description {
+    font-size: 14px;
+    color: #333;
+    padding: 8px;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    resize: none;
+    overflow-y: auto;
+    min-height: 40px;
+    max-height: 240px;
+}
+
+/* Row for Date, Priority, Reminder, and List */
+.input-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.input-row input, .input-row select {
+    flex: 1;
+    min-width: 100px;
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%;
+}
+
+/* Ensure Date and Reminder inputs remain grey */
+.input-row input[type="date"],
+.input-row input[type="text"] {
+    color: grey;
+}
+
+/* Force the text to stay grey when selecting a date */
+.input-row input[type="date"]:focus,
+.input-row input[type="text"]:focus {
+    color: grey !important;
+}
+
+/* Task List Container */
+.task-list-container {
+    width: 100%;
+    max-width: 600px;
+    margin-top: 20px;
+}
+
+/* Task List */
+#task-list {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+}
+
+#task-list li {
+    background: #f9f9f9;
+    margin: 8px 0;
+    padding: 12px;
+    border-left: 4px solid #1e3a8a;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-radius: 5px;
+}
+
+/* Editable Content */
+.editable-content {
+    position: relative;
+    width: 100%;
+}
+
+.display-text {
+    cursor: pointer;
+    padding: 4px;
+    min-height: 20px;
+    border-radius: 3px;
+}
+
+.display-text:hover {
+    background-color: #f0f0f0;
+}
+
+.edit-input {
+    width: 100%;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: inherit;
+}
+
+textarea.edit-input {
+    resize: vertical;
+    min-height: 30px;
+}
+
+/* Task title styling */
+.task-title {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+/* Task description styling */
+.task-desc {
+    color: #555;
+    margin-bottom: 8px;
+}
+
+/* Add & Cancel Buttons */
+.button-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+#add-task, #cancel-task {
+    padding: 10px 15px;
+    font-size: 14px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+}
+
+#add-task {
+    background: #1e3a8a;
+    color: white;
+}
+
+#add-task:hover {
+    background: #162d6a;
+}
+
+#cancel-task {
+    background: #888;
+    color: white;
+}
+
+#cancel-task:hover {
+    background: #666;
+}
+
+/* Make Priority and List dropdown show text in black */
+#priority, #list {
+    color: grey;
+}
+
+/* Ring for Task Completion */
+.task-ring {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #1e3a8a;
+    display: inline-block;
+    margin-right: 15px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* Modify the task-ring completed style to show a checkmark */
+.task-ring.completed {
+    background-color: #1e3a8a;
+    border-color: #1e3a8a;
+    position: relative;
+}
+
+/* Add checkmark/tick using a pseudo-element */
+.task-ring.completed::after {
+    content: "✓";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.task-metadata {
+    font-size: 13px;
+    color: #555;
+    margin-top: 8px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.task-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.delete-task {
+    font-size: 18px;
+    flex-shrink: 0;
+    background: #ff5555;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+/* Sorting Container */
+.sorting-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 15px;
+    gap: 10px;
+}
+
+.sort-button {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #555;
+    font-size: 14px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.sort-button:hover {
+    background-color: #f0f0f0;
+}
+
+.sort-button img {
+    width: 16px;
+    height: 16px;
+    margin-right: 5px;
+}
+
+.sort-menu {
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: none;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.sort-menu.visible {
+    display: block;
+}
+
+.sort-option {
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 14px;
+}
+
+.sort-option:hover {
+    background-color: #f4f4f4;
+}
+
+.sort-option.active {
+    background-color: #e6e6e6;
+    font-weight: bold;
+}
+
+/* Expandable Task Creation Box */
+.task-creation-box {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 30px;
+    border: 1px solid #e6e6e6;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 600px;
+}
+
+.task-creation-box h3 {
+    margin: 0 0 15px 0;
+    color: #1e3a8a;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.task-creation-box h3::after {
+    content: "▼";
+    font-size: 12px;
+    margin-left: 10px;
+    transform: rotate(-90deg);
+    transition: transform 0.3s ease;
+}
+
+.task-creation-box.expanded h3::after {
+    transform: rotate(0);
+}
+
+/* Hidden sections that will be shown when expanded */
+.hidden-section {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    opacity: 0;
+}
+
+.task-creation-box.expanded .hidden-section {
+    max-height: 400px; /* Set this to an appropriate value */
+    opacity: 1;
+}
+
+/* Always visible section */
+.visible-section {
+    margin-bottom: 0;
+}
+
+/* Make the input section within the box look cleaner */
+.task-creation-box .input-section {
+    margin-bottom: 0;
+}
+
+/* Add a subtle hover effect to the inputs */
+.task-creation-box textarea,
+.task-creation-box input,
+.task-creation-box select {
+    transition: border-color 0.2s ease-in-out;
+}
+
+.task-creation-box textarea:focus,
+.task-creation-box input:focus,
+.task-creation-box select:focus {
+    border-color: #1e3a8a;
+    outline: none;
+}
+
+/* List Management */
+.lists-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.lists-header span {
+    font-weight: bold;
+}
+
+#add-list-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#add-list-btn img {
+    width: 16px;
+    height: 16px;
+}
+
+.list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.list-actions {
+    display: none;
+}
+
+.list-item:hover .list-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.list-edit-btn, .list-delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #555;
+    font-size: 12px;
+}
+
+.list-edit-btn:hover, .list-delete-btn:hover {
+    color: #1e3a8a;
+}
+
+.list-name {
+    cursor: pointer;
+    flex-grow: 1;
+}
+
+.list-edit-input {
+    width: 100%;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+/* Lists container scrollable */
+#lists-container {
+    overflow-y: auto;
+    max-height: calc(100vh - 250px);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .left-column {
+        position: relative;
+        height: auto;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .sidebar-main {
+        width: 100%;
+        height: auto;
+        padding: 10px;
+    }
+
+    .sidebar-main nav ul {
+        flex-direction: row;
+        justify-content: space-around;
+    }
+
+    .sidebar-main nav ul li {
+        margin-bottom: 0;
+        margin-right: 15px;
+    }
+
+    .sidebar-left {
+        width: 100%;
+        height: auto;
+        max-height: 300px;
+    }
+
+    main {
+        padding-top: 20px;
+    }
+
+    .today-title {
+        position: static;
+        margin-bottom: 20px;
+    }
+}

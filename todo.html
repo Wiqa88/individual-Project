@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <link rel="stylesheet" href="todo.css">
+</head>
+<body>
+<div class="container">
+    <div class="left-column">
+        <div class="sidebar-main">
+            <nav>
+                <ul>
+                    <li><a href="#"><img src="note.png" alt="To-Do"></a></li>
+                    <li><a href="#"><img src="calendar.png" alt="Calendar"></a></li>
+                    <li><a href="#"><img src="clock.png" alt="Pomodoro"></a></li>
+                    <li><a href="#"><img src="matrix.png" alt="Eisenhower Matrix"></a></li>
+                    <li><a href="#"><img src="habits.png" alt="Habits"></a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <div class="sidebar-left">
+            <div class="menu">
+                <a href="#"><img src="add.png" alt="Add Task">Add Task</a>
+                <a href="#"><img src="search.png" alt="Search">Search</a>
+                <a href="#">Today</a>
+                <a href="#">Next 7 Days</a>
+                <a href="#">Important</a>
+                <a href="#">Inbox</a>
+            </div>
+
+            <div class="separator-line"></div>
+
+            <div class="menu">
+                <div class="lists-header">
+                    <span>Lists</span>
+                    <button id="add-list-btn" title="Add New List"><img src="add.png" alt="Add List"></button>
+                </div>
+                <div id="lists-container">
+                    <!-- Lists will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main>
+        <h1 class="today-title">Today</h1>
+        <!-- Task Creation Section -->
+        <div class="task-creation-box">
+            <h3>Create New Task</h3>
+            <div class="input-section">
+                <div class="visible-section">
+                    <textarea id="task-title" placeholder="Enter your task title..." oninput="autoExpand(this)"></textarea>
+                </div>
+                <div class="hidden-section">
+                    <textarea id="task-description" placeholder="Description..." oninput="autoExpand(this)"></textarea>
+
+                    <div class="input-row">
+                        <input type="text" id="due-date" placeholder="Date" onfocus="(this.type='date')" onblur="(this.type='text')">
+                        <select id="priority">
+                            <option value="priority">Priority</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                        <input type="text" id="reminder" placeholder="Set Reminder" onfocus="(this.type='date')" onblur="(this.type='text')">
+                        <select id="list">
+                            <option value="default">List</option>
+                            <!-- Custom lists will be added dynamically -->
+                        </select>
+                    </div>
+
+                    <div class="button-row">
+                        <button id="cancel-task">Cancel</button>
+                        <button id="add-task">Add</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Task List Section -->
+        <div class="task-list-container">
+            <h2>Tasks</h2>
+            <ul id="task-list"></ul>
+        </div>
+    </main>
+</div>
+
+<script src="todo.js"></script>
+</body>
+</html>
