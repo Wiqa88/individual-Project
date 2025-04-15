@@ -3,6 +3,8 @@ window.lists = [];
 // Global lists array
 let lists = [];
 
+
+
 document.addEventListener("DOMContentLoaded", function () {
     const addTaskButton = document.getElementById("add-task");
     const cancelTaskButton = document.getElementById("cancel-task");
