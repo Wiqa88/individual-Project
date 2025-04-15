@@ -1,28 +1,31 @@
-// Define lists globally so it can be accessed by all functions
-window.lists = [];
-// Global lists array
+// Global state
+let tasks = [];
 let lists = [];
 
-
-
-document.addEventListener("DOMContentLoaded", function () {
-    const addTaskButton = document.getElementById("add-task");
-    const cancelTaskButton = document.getElementById("cancel-task");
-    const taskList = document.getElementById("task-list");
+// Wait for DOM to be fully loaded before executing any code
+document.addEventListener("DOMContentLoaded", function() {
+    // DOM Elements
+    // Task creation elements
+    const taskCreationBox = document.querySelector(".task-creation-box");
     const taskTitle = document.getElementById("task-title");
     const taskDescription = document.getElementById("task-description");
     const dueDate = document.getElementById("due-date");
     const priority = document.getElementById("priority");
-    const list = document.getElementById("list");
     const reminder = document.getElementById("reminder");
+    const listSelect = document.getElementById("list");
+    const addTaskButton = document.getElementById("add-task");
+    const cancelTaskButton = document.getElementById("cancel-task");
+    const taskList = document.getElementById("task-list");
+
+    // List management elements
+    const listsContainer = document.getElementById("lists-container");
+    const addListBtn = document.getElementById("add-list-btn");
 
     // Add sorting container to the DOM
     const taskListContainer = document.querySelector(".task-list-container");
+    const taskListHeading = taskListContainer.querySelector("h2");
     const sortingContainer = document.createElement("div");
     sortingContainer.classList.add("sorting-container");
-
-    // Insert sorting container after the h2 but before the task list
-    const taskListHeading = taskListContainer.querySelector("h2");
     taskListHeading.after(sortingContainer);
 
     // Create sort button with icon
@@ -41,51 +44,496 @@ document.addEventListener("DOMContentLoaded", function () {
     `;
     document.body.appendChild(sortMenu);
 
-    // Toggle sort menu visibility when sort button is clicked
-    sortButton.addEventListener("click", function(e) {
-        e.stopPropagation();
+    // Initialize the application
+    initApp();
 
-        // Position the menu below the sort button
-        const rect = sortButton.getBoundingClientRect();
-        sortMenu.style.top = `${rect.bottom + window.scrollY}px`;
-        sortMenu.style.left = `${rect.left + window.scrollX}px`;
+    // --------------------------
+    // Application Initialization
+    // --------------------------
+    function initApp() {
+        // Load saved data from localStorage
+        loadLists();
+        loadTasks();
 
-        sortMenu.classList.toggle("visible");
-    });
+        // Set up event listeners
+        setupTaskCreationEvents();
+        setupSortingEvents();
+        setupListManagementEvents();
+        setupNavigationEvents();
+    }
 
-    // Hide sort menu when clicking outside
-    document.addEventListener("click", function() {
-        sortMenu.classList.remove("visible");
-    });
+    // ----------------------
+    // Event Setup Functions
+    // ----------------------
+    function setupTaskCreationEvents() {
+        // Task creation box toggling
+        const taskCreationHeader = taskCreationBox.querySelector("h3");
 
-    // Prevent menu from closing when clicking inside it
-    sortMenu.addEventListener("click", function(e) {
-        e.stopPropagation();
-    });
+        // Click on header to toggle box
+        taskCreationHeader.addEventListener("click", function() {
+            taskCreationBox.classList.toggle("expanded");
+            if (taskCreationBox.classList.contains("expanded")) {
+                taskTitle.focus();
+            }
+        });
 
-    // Sorting functionality
-    document.querySelectorAll(".sort-option").forEach(option => {
-        option.addEventListener("click", function() {
-            const sortType = this.dataset.sort;
+        // Focus on title expands the box
+        taskTitle.addEventListener("focus", function() {
+            taskCreationBox.classList.add("expanded");
+        });
 
-            // Mark active sort option
-            document.querySelectorAll(".sort-option").forEach(opt => {
-                opt.classList.remove("active");
-            });
-            this.classList.add("active");
+        // Clicking in task box keeps it expanded
+        taskCreationBox.addEventListener("click", function(e) {
+            if (e.target !== taskCreationHeader) {
+                taskCreationBox.classList.add("expanded");
+            }
+        });
 
-            // Sort tasks
-            sortTasks(sortType);
+        // Click outside collapses box if title is empty
+        document.addEventListener("click", function(e) {
+            if (!taskCreationBox.contains(e.target) && taskTitle.value.trim() === '') {
+                taskCreationBox.classList.remove("expanded");
+            }
+        });
 
-            // Hide menu after selection
+        // Add task button click handler
+        addTaskButton.addEventListener("click", addTask);
+
+        // Cancel task button click handler
+        cancelTaskButton.addEventListener("click", function() {
+            // Reset form
+            clearTaskForm();
+            // Collapse box
+            taskCreationBox.classList.remove("expanded");
+        });
+
+        // Auto-expand textareas when typing
+        taskTitle.addEventListener('input', () => autoExpand(taskTitle));
+        taskDescription.addEventListener('input', () => autoExpand(taskDescription));
+
+        // Allow pressing Enter in task title to add task or expand box
+        taskTitle.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (taskCreationBox.classList.contains("expanded")) {
+                    addTask();
+                } else {
+                    taskCreationBox.classList.add("expanded");
+                }
+            }
+        });
+
+        // Format date inputs on change (just for feedback)
+        dueDate.addEventListener('change', function() {
+            const dateValue = this.value;
+            if (dateValue) {
+                const formattedDate = formatDate(dateValue);
+                console.log(`Date will be saved as: ${formattedDate}`);
+            }
+        });
+
+        reminder.addEventListener('change', function() {
+            const dateValue = this.value;
+            if (dateValue) {
+                const formattedDate = formatDate(dateValue);
+                console.log(`Reminder will be saved as: ${formattedDate}`);
+            }
+        });
+    }
+
+    function setupSortingEvents() {
+        // Toggle sort menu visibility when sort button is clicked
+        sortButton.addEventListener("click", function(e) {
+            e.stopPropagation();
+
+            // Position the menu below the sort button
+            const rect = sortButton.getBoundingClientRect();
+            sortMenu.style.top = `${rect.bottom + window.scrollY}px`;
+            sortMenu.style.left = `${rect.left + window.scrollX}px`;
+
+            sortMenu.classList.toggle("visible");
+        });
+
+        // Hide sort menu when clicking outside
+        document.addEventListener("click", function() {
             sortMenu.classList.remove("visible");
         });
-    });
+
+        // Prevent menu from closing when clicking inside it
+        sortMenu.addEventListener("click", function(e) {
+            e.stopPropagation();
+        });
+
+        // Sorting functionality
+        document.querySelectorAll(".sort-option").forEach(option => {
+            option.addEventListener("click", function() {
+                const sortType = this.dataset.sort;
+
+                // Mark active sort option
+                document.querySelectorAll(".sort-option").forEach(opt => {
+                    opt.classList.remove("active");
+                });
+                this.classList.add("active");
+
+                // Sort tasks
+                sortTasks(sortType);
+
+                // Hide menu after selection
+                sortMenu.classList.remove("visible");
+            });
+        });
+    }
+
+    function setupListManagementEvents() {
+        // Add a new list
+        addListBtn.addEventListener("click", addNewList);
+    }
+
+    function setupNavigationEvents() {
+        // Show all tasks when "Today" is clicked
+        document.querySelector(".menu a:nth-child(3)").addEventListener("click", function() {
+            const taskItems = document.querySelectorAll(".task-item");
+            taskItems.forEach(taskItem => {
+                taskItem.style.display = "flex";
+            });
+            document.querySelector(".today-title").textContent = "Today";
+        });
+    }
+
+    // ----------------------
+    // Task Management
+    // ----------------------
+    function addTask() {
+        const titleValue = taskTitle.value.trim();
+
+        if (titleValue) {
+            const newTask = {
+                id: Date.now(), // Unique ID using timestamp
+                title: titleValue,
+                description: taskDescription.value.trim(),
+                date: dueDate.value || null,
+                reminder: reminder.value || null,
+                priority: priority.value !== 'priority' ? priority.value : 'medium',
+                list: listSelect.value !== 'default' ? listSelect.value : 'N/A',
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+
+            // Add task to global array
+            tasks.push(newTask);
+
+            // Create task element
+            const taskItem = createTaskElement(newTask);
+            taskList.appendChild(taskItem);
+
+            // Save tasks to localStorage
+            saveTasks();
+
+            // Reset form
+            clearTaskForm();
+
+            // Collapse creation box
+            taskCreationBox.classList.remove("expanded");
+        } else {
+            alert("Please enter a task title");
+        }
+    }
+
+    function clearTaskForm() {
+        taskTitle.value = '';
+        taskDescription.value = '';
+        dueDate.value = '';
+        reminder.value = '';
+        priority.value = 'priority';
+        listSelect.value = 'default';
+
+        // Reset heights
+        taskTitle.style.height = 'auto';
+        taskDescription.style.height = 'auto';
+    }
+
+    function createTaskElement(task) {
+        const taskItem = document.createElement("li");
+
+        // Set left border color based on priority
+        const priorityColors = {
+            high: '#ff5555',
+            medium: '#ffa500',
+            low: '#1e3a8a',
+            'N/A': '#1e3a8a'
+        };
+        taskItem.style.borderLeftColor = priorityColors[task.priority] || '#1e3a8a';
+
+        // Add opacity if task is completed
+        if (task.completed) {
+            taskItem.style.opacity = '0.6';
+        }
+
+        // Task item inner structure
+        const taskItemInner = document.createElement("div");
+        taskItemInner.className = "task-item";
+
+        // Task completion ring
+        const taskRing = document.createElement("div");
+        taskRing.className = task.completed ? "task-ring completed" : "task-ring";
+        taskRing.addEventListener("click", function() {
+            toggleTaskCompletion(task, taskRing, taskItem);
+        });
+
+        // Task content container
+        const taskContent = document.createElement("div");
+        taskContent.style.width = "100%";
+
+        // Format dates for display
+        const formattedDueDate = formatDate(task.date);
+        const formattedReminderDate = formatDate(task.reminder);
+
+        // Title with inline editing
+        const titleDiv = createEditableField('title', task.title, 'task-title', task);
+
+        // Description with inline editing
+        const descDiv = createEditableField('description', task.description, 'task-desc', task);
+
+        // Metadata container
+        const metadata = document.createElement("div");
+        metadata.classList.add("task-metadata");
+
+        // Date with inline editing
+        const dateDiv = createEditableField('date', formattedDueDate, '', task, 'Date: ');
+
+        // Reminder with inline editing
+        const reminderDiv = createEditableField('reminder', formattedReminderDate, '', task, 'Reminder: ');
+
+        // Priority with inline editing (select dropdown)
+        const priorityDiv = createEditableSelectField('priority', task.priority, task, ['low', 'medium', 'high'], 'Priority: ');
+
+        // List with inline editing (select dropdown)
+        const listDiv = createEditableSelectField('list', task.list, task, ['N/A', ...lists], 'List: ');
+
+        // Delete button
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "×";
+        deleteButton.className = "delete-task";
+        deleteButton.addEventListener("click", function() {
+            deleteTask(task.id, taskItem);
+        });
+
+        // Assemble the task item
+        metadata.append(dateDiv, reminderDiv, priorityDiv, listDiv);
+        taskContent.append(titleDiv, descDiv, metadata);
+        taskItemInner.append(taskRing, taskContent);
+        taskItem.append(taskItemInner, deleteButton);
+
+        return taskItem;
+    }
+
+    function createEditableField(fieldName, value, className, task, prefix = '') {
+        const containerDiv = document.createElement("div");
+        if (className) containerDiv.classList.add(className);
+
+        const editableContent = document.createElement("div");
+        editableContent.className = "editable-content";
+        editableContent.dataset.field = fieldName;
+
+        // Display text element
+        const displayText = document.createElement("div");
+        displayText.className = "display-text";
+        displayText.textContent = prefix + (value || 'N/A');
+
+        // Edit element (input or textarea)
+        const isTextArea = fieldName === 'description' || (value && value.length > 30);
+        const editInput = isTextArea ?
+            document.createElement("textarea") :
+            document.createElement("input");
+
+        editInput.className = "edit-input";
+
+        // For date fields, set the type to date
+        if (fieldName === 'date' || fieldName === 'reminder') {
+            editInput.type = "date";
+            // Convert formatted date back to yyyy-mm-dd for input
+            editInput.value = convertToInputDateFormat(value);
+        } else {
+            editInput.value = value || '';
+        }
+
+        editInput.style.display = "none";
+
+        // Set up editing functionality
+        displayText.addEventListener("dblclick", function() {
+            // Enter edit mode
+            displayText.style.display = "none";
+            editInput.style.display = "block";
+
+            if (isTextArea) {
+                autoExpand(editInput);
+                editInput.addEventListener('input', () => autoExpand(editInput));
+            }
+
+            editInput.focus();
+        });
+
+        // Handle saving on blur or Enter key
+        editInput.addEventListener("blur", function() {
+            saveFieldEdit(fieldName, this.value, task, displayText, prefix);
+        });
+
+        editInput.addEventListener("keydown", function(e) {
+            if (e.key === "Enter" && !e.shiftKey && !isTextArea) {
+                e.preventDefault();
+                this.blur(); // Trigger blur to save
+            } else if (e.key === "Escape") {
+                // Cancel edit and restore original value
+                displayText.style.display = "block";
+                editInput.style.display = "none";
+                editInput.value = task[fieldName] || '';
+            }
+        });
+
+        // Assemble the editable field
+        editableContent.append(displayText, editInput);
+        containerDiv.appendChild(editableContent);
+
+        return containerDiv;
+    }
+
+    function createEditableSelectField(fieldName, value, task, options, prefix = '') {
+        const containerDiv = document.createElement("div");
+
+        const editableContent = document.createElement("div");
+        editableContent.className = "editable-content";
+        editableContent.dataset.field = fieldName;
+
+        // Display text element
+        const displayText = document.createElement("div");
+        displayText.className = "display-text";
+        displayText.textContent = prefix + (value || 'N/A');
+
+        // Create select element
+        const selectInput = document.createElement("select");
+        selectInput.className = "edit-input";
+        selectInput.style.display = "none";
+
+        // Add options
+        options.forEach(optionValue => {
+            const option = document.createElement("option");
+            option.value = optionValue;
+            option.textContent = optionValue;
+            if (value === optionValue) {
+                option.selected = true;
+            }
+            selectInput.appendChild(option);
+        });
+
+        // Set up editing functionality
+        displayText.addEventListener("dblclick", function() {
+            // Enter edit mode
+            displayText.style.display = "none";
+            selectInput.style.display = "block";
+            selectInput.focus();
+        });
+
+        // Handle saving on blur or Enter key
+        selectInput.addEventListener("blur", function() {
+            const selectedValue = this.options[this.selectedIndex].value;
+            saveFieldEdit(fieldName, selectedValue, task, displayText, prefix);
+        });
+
+        selectInput.addEventListener("keydown", function(e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                this.blur(); // Trigger blur to save
+            } else if (e.key === "Escape") {
+                // Cancel edit
+                displayText.style.display = "block";
+                selectInput.style.display = "none";
+            }
+        });
+
+        // Assemble the editable field
+        editableContent.append(displayText, selectInput);
+        containerDiv.appendChild(editableContent);
+
+        return containerDiv;
+    }
+
+    function saveFieldEdit(fieldName, value, task, displayElement, prefix = '') {
+        // Get the original value
+        const originalValue = task[fieldName];
+
+        // Clean up value
+        if (typeof value === 'string') {
+            value = value.trim();
+        }
+
+        // Handle empty values
+        if (value === '' || value === null || value === undefined) {
+            if (fieldName === 'title') {
+                value = 'Untitled'; // Don't allow empty titles
+            } else {
+                value = null;
+            }
+        }
+
+        // Update task object
+        task[fieldName] = value;
+
+        // Update display
+        displayElement.textContent = prefix + (value || 'N/A');
+        displayElement.style.display = "block";
+
+        // Hide the edit input
+        const editInput = displayElement.nextElementSibling;
+        editInput.style.display = "none";
+
+        // Only save if value actually changed
+        if (originalValue !== value) {
+            // Find task in global array and update it
+            const taskIndex = tasks.findIndex(t => t.id === task.id);
+            if (taskIndex !== -1) {
+                tasks[taskIndex][fieldName] = value;
+                saveTasks();
+            }
+        }
+    }
+
+    function toggleTaskCompletion(task, taskRingElement, taskItemElement) {
+        task.completed = !task.completed;
+
+        // Update UI
+        if (task.completed) {
+            taskRingElement.classList.add("completed");
+            taskItemElement.style.opacity = "0.6";
+        } else {
+            taskRingElement.classList.remove("completed");
+            taskItemElement.style.opacity = "1";
+        }
+
+        // Update task in global array
+        const taskIndex = tasks.findIndex(t => t.id === task.id);
+        if (taskIndex !== -1) {
+            tasks[taskIndex].completed = task.completed;
+            saveTasks();
+        }
+    }
+
+    function deleteTask(taskId, taskElement) {
+        if (confirm("Are you sure you want to delete this task?")) {
+            // Remove from DOM
+            taskElement.remove();
+
+            // Remove from global array
+            tasks = tasks.filter(task => task.id !== taskId);
+
+            // Save changes
+            saveTasks();
+        }
+    }
 
     function sortTasks(sortType) {
-        const tasks = Array.from(taskList.querySelectorAll("li"));
+        const taskElements = Array.from(taskList.querySelectorAll("li"));
 
-        tasks.sort((a, b) => {
+        taskElements.sort((a, b) => {
             if (sortType === "date") {
                 const dateA = a.querySelector("[data-field='date'] .display-text").textContent.replace("Date: ", "");
                 const dateB = b.querySelector("[data-field='date'] .display-text").textContent.replace("Date: ", "");
@@ -95,14 +543,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (dateA === "N/A") return 1;
                 if (dateB === "N/A") return -1;
 
-                // Convert dd/mm/yyyy to date objects
-                const [dayA, monthA, yearA] = dateA.split("/");
-                const [dayB, monthB, yearB] = dateB.split("/");
-
-                const dateObjA = new Date(yearA, monthA - 1, dayA);
-                const dateObjB = new Date(yearB, monthB - 1, dayB);
-
-                return dateObjA - dateObjB;
+                // Parse dates properly
+                return parseDateString(dateA) - parseDateString(dateB);
 
             } else if (sortType === "priority") {
                 const priorityA = a.querySelector("[data-field='priority'] .display-text").textContent.replace("Priority: ", "");
@@ -125,18 +567,300 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         // Reorder the DOM elements
-        tasks.forEach(task => {
+        taskElements.forEach(task => {
             taskList.appendChild(task);
         });
     }
 
-    // Function to auto-expand textarea height based on content
-    window.autoExpand = function(textarea) {
-        textarea.style.height = 'auto';
-        textarea.style.height = (textarea.scrollHeight) + 'px';
-    };
+    // ----------------------
+    // List Management
+    // ----------------------
+    function addNewList() {
+        const newListName = prompt("Enter a name for the new list:");
 
-    // Function to format date from yyyy-mm-dd to dd/mm/yyyy
+        if (newListName && newListName.trim()) {
+            // Check if list already exists
+            if (lists.includes(newListName.trim())) {
+                alert("A list with this name already exists");
+                return;
+            }
+
+            // Add to global array
+            lists.push(newListName.trim());
+
+            // Save and update UI
+            saveLists();
+            renderLists();
+            updateListDropdown();
+        }
+    }
+
+    function renderLists() {
+        listsContainer.innerHTML = '';
+
+        lists.forEach((listName, index) => {
+            const listItem = document.createElement("div");
+            listItem.classList.add("list-item");
+
+            // List name (clickable)
+            const listName_el = document.createElement("span");
+            listName_el.className = "list-name";
+            listName_el.dataset.index = index;
+            listName_el.textContent = listName;
+            listName_el.addEventListener('click', function() {
+                filterTasksByList(listName);
+            });
+
+            // List actions (edit, delete)
+            const listActions = document.createElement("div");
+            listActions.className = "list-actions";
+
+// Edit button
+            const editBtn = document.createElement("button");
+            editBtn.className = "list-edit-btn";
+            editBtn.dataset.index = index;
+            editBtn.textContent = "Edit";
+
+// Delete button
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "list-delete-btn";
+            deleteBtn.dataset.index = index;
+            deleteBtn.textContent = "Delete";
+
+            // Assemble list item
+            listActions.append(editBtn, deleteBtn);
+            listItem.append(listName_el, listActions);
+            listsContainer.appendChild(listItem);
+        });
+    }
+
+    function editList(index, listItem) {
+        const listNameEl = listItem.querySelector('.list-name');
+        const currentName = lists[index];
+
+        // Create edit input
+        const editInput = document.createElement("input");
+        editInput.className = "list-edit-input";
+        editInput.value = currentName;
+
+        // Replace list name with input
+        listNameEl.style.display = 'none';
+        listItem.insertBefore(editInput, listNameEl);
+        editInput.focus();
+
+        // Setup save on enter or blur
+        editInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                saveListEdit(index, editInput.value, listItem, listNameEl, editInput);
+            } else if (e.key === 'Escape') {
+                cancelListEdit(listItem, listNameEl, editInput);
+            }
+        });
+
+        editInput.addEventListener('blur', function() {
+            saveListEdit(index, editInput.value, listItem, listNameEl, editInput);
+        });
+    }
+
+    function saveListEdit(index, newName, listItem, listNameEl, editInput) {
+        newName = newName.trim();
+
+        if (newName && newName !== lists[index]) {
+            // Check if the new name already exists
+            if (lists.includes(newName)) {
+                alert("A list with this name already exists");
+                cancelListEdit(listItem, listNameEl, editInput);
+                return;
+            }
+
+            const oldName = lists[index];
+            lists[index] = newName;
+
+            // Update tasks with this list name
+            updateTasksWithNewListName(oldName, newName);
+
+            // Save and update UI
+            saveLists();
+            updateListDropdown();
+        }
+
+        // Restore display
+        listNameEl.textContent = lists[index];
+        listNameEl.style.display = '';
+        editInput.remove();
+    }
+
+    function cancelListEdit(listItem, listNameEl, editInput) {
+        listNameEl.style.display = '';
+        editInput.remove();
+    }
+
+    function deleteList(index, listName) {
+        // Prevent deleting default lists
+        if (['Personal', 'Work', 'Shopping'].includes(listName)) {
+            alert('Cannot delete default lists');
+            return;
+        }
+
+        if (confirm(`Are you sure you want to delete the list "${listName}"?`)) {
+            // Remove from global array
+            lists.splice(index, 1);
+
+            // Update tasks that were in this list
+            updateTasksWithDeletedList(listName);
+
+            // Save and update UI
+            saveLists();
+            renderLists();
+            updateListDropdown();
+        }
+    }
+
+    function updateTasksWithNewListName(oldName, newName) {
+        let tasksUpdated = false;
+
+        // Update in memory tasks
+        tasks.forEach(task => {
+            if (task.list === oldName) {
+                task.list = newName;
+                tasksUpdated = true;
+            }
+        });
+
+        // Update task elements in the DOM
+        document.querySelectorAll(".task-item").forEach(taskItem => {
+            const listDisplay = taskItem.querySelector("[data-field='list'] .display-text");
+            if (listDisplay && listDisplay.textContent === `List: ${oldName}`) {
+                listDisplay.textContent = `List: ${newName}`;
+            }
+        });
+
+        if (tasksUpdated) {
+            saveTasks();
+        }
+    }
+
+    function updateTasksWithDeletedList(deletedListName) {
+        let tasksUpdated = false;
+
+        // Update in memory tasks
+        tasks.forEach(task => {
+            if (task.list === deletedListName) {
+                task.list = 'N/A';
+                tasksUpdated = true;
+            }
+        });
+
+        // Update task elements in the DOM
+        document.querySelectorAll(".task-item").forEach(taskItem => {
+            const listDisplay = taskItem.querySelector("[data-field='list'] .display-text");
+            if (listDisplay && listDisplay.textContent === `List: ${deletedListName}`) {
+                listDisplay.textContent = "List: N/A";
+            }
+        });
+
+        if (tasksUpdated) {
+            saveTasks();
+        }
+    }
+
+    function updateListDropdown() {
+        // Clear current options except the default one
+        while (listSelect.options.length > 1) {
+            listSelect.remove(1);
+        }
+
+        // Add list options
+        lists.forEach(listName => {
+            const option = document.createElement("option");
+            option.value = listName;
+            option.textContent = listName;
+            listSelect.appendChild(option);
+        });
+    }
+
+    function filterTasksByList(listName) {
+        const taskItems = document.querySelectorAll(".task-item");
+
+        taskItems.forEach(taskItem => {
+            const parentLi = taskItem.closest('li');
+            const taskList = taskItem.querySelector("[data-field='list'] .display-text").textContent.replace("List: ", "");
+
+            if (listName === taskList) {
+                parentLi.style.display = "flex";
+            } else {
+                parentLi.style.display = "none";
+            }
+        });
+
+        // Update the page title to show which list is being viewed
+        document.querySelector(".today-title").textContent = listName;
+    }
+
+    // ----------------------
+    // Persistence Functions
+    // ----------------------
+    function loadTasks() {
+        const savedTasks = localStorage.getItem("tasks");
+
+        tasks = savedTasks ? JSON.parse(savedTasks) : [];
+
+        // Render tasks to DOM
+        renderTasks();
+    }
+
+    function saveTasks() {
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    function renderTasks() {
+        taskList.innerHTML = '';
+
+        // Sort tasks: completed at bottom, then by date, then by priority
+        const sortedTasks = [...tasks].sort((a, b) => {
+            // Completed tasks at bottom
+            if (a.completed !== b.completed) {
+                return a.completed ? 1 : -1;
+            }
+
+            // Sort by date
+            if (a.date && b.date) {
+                return new Date(a.date) - new Date(b.date);
+            } else if (a.date) {
+                return -1;
+            } else if (b.date) {
+                return 1;
+            }
+
+            // Sort by priority
+            const priorityOrder = { high: 0, medium: 1, low: 2, 'N/A': 3 };
+            return priorityOrder[a.priority] - priorityOrder[b.priority];
+        });
+
+        // Create task elements
+        sortedTasks.forEach(task => {
+            const taskItem = createTaskElement(task);
+            taskList.appendChild(taskItem);
+        });
+    }
+
+    function loadLists() {
+        const savedLists = localStorage.getItem("custom-lists");
+
+        lists = savedLists ? JSON.parse(savedLists) : ["Personal", "Work", "Shopping"];
+
+        // Update UI
+        renderLists();
+        updateListDropdown();
+    }
+
+    function saveLists() {
+        localStorage.setItem("custom-lists", JSON.stringify(lists));
+    }
+
+    // ----------------------
+    // Utility Functions
+    // ----------------------
     function formatDate(dateString) {
         if (!dateString) return 'N/A';
 
@@ -158,7 +882,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return dateString;
     }
 
-    // Function to convert date from dd/mm/yyyy to yyyy-mm-dd for input fields
     function convertToInputDateFormat(dateString) {
         if (!dateString || dateString === 'N/A') return '';
 
@@ -180,990 +903,24 @@ document.addEventListener("DOMContentLoaded", function () {
         return '';
     }
 
-    // Set up auto-expand for input fields
-    taskTitle.addEventListener('input', () => autoExpand(taskTitle));
-    taskDescription.addEventListener('input', () => autoExpand(taskDescription));
+    function parseDateString(dateString) {
+        // Handle special cases
+        if (dateString === 'N/A') return Number.MAX_SAFE_INTEGER; // Put at the end
 
-    // Add task button click handler
-    addTaskButton.addEventListener("click", function () {
-        const title = taskTitle.value.trim();
-        const description = taskDescription.value.trim();
-        const dateValue = dueDate.value.trim();
-        const reminderValue = reminder.value.trim();
-        const priorityValue = priority.value;
-        const listValue = list.value;
-
-        if (title) {
-            const taskItem = createTaskElement({
-                title,
-                description,
-                date: dateValue,
-                reminder: reminderValue,
-                priority: priorityValue,
-                list: listValue,
-                completed: false
-            });
-
-            taskList.appendChild(taskItem);
-            saveTasks();
-
-            // Reset input fields
-            taskTitle.value = '';
-            taskDescription.value = '';
-            dueDate.value = '';
-            reminder.value = '';
-            priority.value = 'priority';
-            list.value = 'default';
-        }
-    });
-
-    // Cancel task button click handler
-    cancelTaskButton.addEventListener("click", function() {
-        taskTitle.value = '';
-        taskDescription.value = '';
-        dueDate.value = '';
-        reminder.value = '';
-        priority.value = 'priority';
-        list.value = 'default';
-    });
-
-    // Create a task element
-    function createTaskElement(task) {
-        const taskItem = document.createElement("li");
-        taskItem.classList.add("task-item");
-
-        // Task completion ring
-        const taskRing = document.createElement("div");
-        taskRing.classList.add("task-ring");
-        if (task.completed) taskRing.classList.add("completed");
-
-        taskRing.addEventListener("click", function () {
-            taskRing.classList.toggle("completed");
-            task.completed = taskRing.classList.contains("completed");
-            saveTasks();
-        });
-
-        // Task content container
-        const taskContent = document.createElement("div");
-        taskContent.style.width = "100%";
-
-        // Format dates for display
-        const formattedDueDate = formatDate(task.date);
-        const formattedReminderDate = formatDate(task.reminder);
-
-        // Title with inline editing
-        const titleDiv = document.createElement("div");
-        titleDiv.innerHTML = `
-            <div class="editable-content" data-field="title">
-                <div class="display-text">${task.title}</div>
-                <input type="text" class="edit-input" value="${task.title}" style="display: none;">
-            </div>
-        `;
-        titleDiv.classList.add("task-title");
-        setupInlineEditing(titleDiv.querySelector('.editable-content'), task);
-
-        // Description with inline editing
-        const descDiv = document.createElement("div");
-        descDiv.innerHTML = `
-            <div class="editable-content" data-field="description">
-                <div class="display-text">${task.description}</div>
-                <textarea class="edit-input" style="display: none;">${task.description}</textarea>
-            </div>
-        `;
-        descDiv.classList.add("task-desc");
-        setupInlineEditing(descDiv.querySelector('.editable-content'), task);
-
-        // Metadata container
-        const metadata = document.createElement("div");
-        metadata.classList.add("task-metadata");
-
-        // Date with inline editing
-        const dateDiv = document.createElement("div");
-        dateDiv.innerHTML = `
-            <div class="editable-content" data-field="date">
-                <div class="display-text">Date: ${formattedDueDate}</div>
-                <input type="date" class="edit-input" value="${convertToInputDateFormat(task.date)}" style="display: none;">
-            </div>
-        `;
-        setupInlineEditing(dateDiv.querySelector('.editable-content'), task);
-
-        // Reminder with inline editing
-        const reminderDiv = document.createElement("div");
-        reminderDiv.innerHTML = `
-            <div class="editable-content" data-field="reminder">
-                <div class="display-text">Reminder: ${formattedReminderDate}</div>
-                <input type="date" class="edit-input" value="${convertToInputDateFormat(task.reminder)}" style="display: none;">
-            </div>
-        `;
-        setupInlineEditing(reminderDiv.querySelector('.editable-content'), task);
-
-        // Priority with inline editing
-        const priorityDiv = document.createElement("div");
-        priorityDiv.innerHTML = `
-            <div class="editable-content" data-field="priority">
-                <div class="display-text">Priority: ${task.priority || 'N/A'}</div>
-                <select class="edit-input" style="display: none;">
-                    <option value="low" ${task.priority === 'low' ? 'selected' : ''}>Low</option>
-                    <option value="medium" ${task.priority === 'medium' ? 'selected' : ''}>Medium</option>
-                    <option value="high" ${task.priority === 'high' ? 'selected' : ''}>High</option>
-                </select>
-            </div>
-        `;
-        setupInlineEditing(priorityDiv.querySelector('.editable-content'), task);
-
-        // List with inline editing
-// List with inline editing
-        const listDiv = document.createElement("div");
-        listDiv.innerHTML = `
-    <div class="editable-content" data-field="list">
-        <div class="display-text">List: ${task.list || 'N/A'}</div>
-        <select class="edit-input" style="display: none;">
-            <option value="N/A">N/A</option>
-        </select>
-    </div>
-`;
-
-// Get the select element
-        const listSelect = listDiv.querySelector('.edit-input');
-
-// Add options for each list
-        lists.forEach(listName => {
-            const option = document.createElement("option");
-            option.value = listName;
-            option.textContent = listName;
-            if (task.list === listName) {
-                option.selected = true;
-            }
-            listSelect.appendChild(option);
-        });
-
-        setupInlineEditing(listDiv.querySelector('.editable-content'), task);
-
-        // Add delete button
-        const deleteButton = document.createElement("button");
-        deleteButton.textContent = "×";
-        deleteButton.classList.add("delete-task");
-        deleteButton.style.marginLeft = "10px";
-        deleteButton.style.background = "#ff5555";
-        deleteButton.style.color = "white";
-        deleteButton.style.border = "none";
-        deleteButton.style.borderRadius = "50%";
-        deleteButton.style.width = "24px";
-        deleteButton.style.height = "24px";
-        deleteButton.style.cursor = "pointer";
-        deleteButton.addEventListener("click", function() {
-            taskItem.remove();
-            saveTasks();
-        });
-
-        // Assemble the task item
-        metadata.appendChild(dateDiv);
-        metadata.appendChild(reminderDiv);
-        metadata.appendChild(priorityDiv);
-        metadata.appendChild(listDiv);
-
-        taskContent.appendChild(titleDiv);
-        taskContent.appendChild(descDiv);
-        taskContent.appendChild(metadata);
-
-        taskItem.appendChild(taskRing);
-        taskItem.appendChild(taskContent);
-        taskItem.appendChild(deleteButton);
-
-        return taskItem;
-    }
-
-    // Setup inline editing for a specific element
-    function setupInlineEditing(element, task) {
-        const displayText = element.querySelector('.display-text');
-        const editInput = element.querySelector('.edit-input');
-        const field = element.dataset.field;
-
-        // Double-click to edit
-        displayText.addEventListener('dblclick', function() {
-            displayText.style.display = 'none';
-            editInput.style.display = 'block';
-
-            if (editInput.tagName === 'TEXTAREA') {
-                autoExpand(editInput);
-                editInput.addEventListener('input', () => autoExpand(editInput));
-            }
-
-            editInput.focus();
-        });
-
-        // Save on enter, blur or escape
-        editInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                saveEdit();
-            } else if (e.key === 'Escape') {
-                cancelEdit();
-            }
-        });
-
-        editInput.addEventListener('blur', saveEdit);
-
-        function saveEdit() {
-            let value = editInput.value.trim();
-
-            // Update display and task object
-            if (field === 'title') {
-                task.title = value || 'Untitled';
-                displayText.textContent = task.title;
-            } else if (field === 'description') {
-                task.description = value;
-                displayText.textContent = task.description;
-            } else if (field === 'date') {
-                task.date = value;
-                displayText.textContent = `Date: ${formatDate(value)}`;
-            } else if (field === 'reminder') {
-                task.reminder = value;
-                displayText.textContent = `Reminder: ${formatDate(value)}`;
-            } else if (field === 'priority') {
-                task.priority = editInput.options[editInput.selectedIndex].value;
-                displayText.textContent = `Priority: ${task.priority || 'N/A'}`;
-            } else if (field === 'list') {
-                task.list = editInput.options[editInput.selectedIndex].value;
-                displayText.textContent = `List: ${task.list || 'N/A'}`;
-            }
-
-            // Hide input, show display text
-            displayText.style.display = 'block';
-            editInput.style.display = 'none';
-
-            // Save tasks to localStorage
-            saveTasks();
+        // Parse dd/mm/yyyy format
+        const parts = dateString.split('/');
+        if (parts.length === 3) {
+            const [day, month, year] = parts;
+            return new Date(year, month - 1, day).getTime();
         }
 
-        function cancelEdit() {
-            // Reset input to match task
-            if (field === 'title') {
-                editInput.value = task.title;
-            } else if (field === 'description') {
-                editInput.value = task.description;
-            } else if (field === 'date') {
-                editInput.value = convertToInputDateFormat(task.date);
-            } else if (field === 'reminder') {
-                editInput.value = convertToInputDateFormat(task.reminder);
-            } else if (field === 'priority' || field === 'list') {
-                for (let i = 0; i < editInput.options.length; i++) {
-                    if (editInput.options[i].value === task[field]) {
-                        editInput.selectedIndex = i;
-                        break;
-                    }
-                }
-            }
-
-            // Hide input, show display text
-            displayText.style.display = 'block';
-            editInput.style.display = 'none';
-        }
+        // Fallback to regular date parsing
+        return new Date(dateString).getTime();
     }
 
-    // Save tasks to localStorage
-    function saveTasks() {
-        const tasks = [];
-        const taskItems = document.querySelectorAll(".task-item");
-
-        taskItems.forEach(taskItem => {
-            const titleText = taskItem.querySelector("[data-field='title'] .display-text").textContent;
-            const descText = taskItem.querySelector("[data-field='description'] .display-text").textContent;
-            const dateText = taskItem.querySelector("[data-field='date'] .display-text").textContent.replace("Date: ", "");
-            const reminderText = taskItem.querySelector("[data-field='reminder'] .display-text").textContent.replace("Reminder: ", "");
-            const priorityText = taskItem.querySelector("[data-field='priority'] .display-text").textContent.replace("Priority: ", "");
-            const listText = taskItem.querySelector("[data-field='list'] .display-text").textContent.replace("List: ", "");
-            const completed = taskItem.querySelector(".task-ring").classList.contains("completed");
-
-            const task = {
-                title: titleText,
-                description: descText,
-                date: dateText,
-                reminder: reminderText,
-                priority: priorityText,
-                list: listText,
-                completed: completed
-            };
-            tasks.push(task);
-        });
-
-        localStorage.setItem("tasks", JSON.stringify(tasks));
-    }
-
-    // Load tasks from localStorage
-    function loadTasks() {
-        const savedTasks = localStorage.getItem("tasks");
-
-        if (savedTasks) {
-            const tasks = JSON.parse(savedTasks);
-
-            tasks.forEach(task => {
-                const taskItem = createTaskElement(task);
-                taskList.appendChild(taskItem);
-            });
-        }
-    }
-
-    // Render tasks
-    function renderTasks() {
-        taskList.innerHTML = '';
-        loadTasks();
-    }
-
-    // Format date inputs on change
-    dueDate.addEventListener('change', function() {
-        // Just for visual feedback that the date format will be correct
-        const dateValue = this.value;
-        if (dateValue) {
-            const formattedDate = formatDate(dateValue);
-            console.log(`Date will be saved as: ${formattedDate}`);
-        }
-    });
-
-    reminder.addEventListener('change', function() {
-        // Just for visual feedback that the date format will be correct
-        const dateValue = this.value;
-        if (dateValue) {
-            const formattedDate = formatDate(dateValue);
-            console.log(`Reminder will be saved as: ${formattedDate}`);
-        }
-    });
-
-    // Initialize by loading tasks
-    loadTasks();
-});
-
-// Add this to the beginning of your DOMContentLoaded event handler
-document.addEventListener("DOMContentLoaded", function () {
-    // ... existing code ...
-
-    // Task creation box expand/collapse functionality
-    const taskCreationBox = document.querySelector(".task-creation-box");
-    const taskCreationHeader = taskCreationBox.querySelector("h3");
-    const taskTitleInput = document.getElementById("task-title");
-
-    // Function to expand the task creation box
-    function expandTaskCreation() {
-        taskCreationBox.classList.add("expanded");
-    }
-
-    // Function to collapse the task creation box
-    function collapseTaskCreation() {
-        if (taskTitleInput.value.trim() === '') {
-            taskCreationBox.classList.remove("expanded");
-        }
-    }
-
-    // Click on the header to toggle
-    taskCreationHeader.addEventListener("click", function() {
-        taskCreationBox.classList.toggle("expanded");
-        if (taskCreationBox.classList.contains("expanded")) {
-            taskTitleInput.focus();
-        }
-    });
-
-    // Focus on title expands the box
-    taskTitleInput.addEventListener("focus", expandTaskCreation);
-
-    // Clicking anywhere in the task box keeps it expanded
-    taskCreationBox.addEventListener("click", function(e) {
-        if (e.target !== taskCreationHeader) {
-            expandTaskCreation();
-        }
-    });
-
-    // Click outside collapses the box if title is empty
-    document.addEventListener("click", function(e) {
-        if (!taskCreationBox.contains(e.target)) {
-            collapseTaskCreation();
-        }
-    });
-
-    // Cancel button collapses the box
-    cancelTaskButton.addEventListener("click", function() {
-        // Existing code for resetting fields
-        taskTitle.value = '';
-        taskDescription.value = '';
-        dueDate.value = '';
-        reminder.value = '';
-        priority.value = 'priority';
-        list.value = 'default';
-
-        // Add this line to collapse the box
-        collapseTaskCreation();
-    });
-
-    // Add task button should collapse the box after adding
-    const originalAddTaskHandler = addTaskButton.onclick;
-    addTaskButton.addEventListener("click", function() {
-        // Original functionality will be called normally
-
-        // After task is added and fields are reset, collapse the box
-        setTimeout(collapseTaskCreation, 0);
-    });
-
-    // Start with the box collapsed
-    collapseTaskCreation();
-
-    // ... rest of your existing code ...
-});
-
-// Add these functions to your existing JavaScript file
-
-document.addEventListener("DOMContentLoaded", function() {
-    // Get references to list management elements
-    const listsContainer = document.getElementById("lists-container");
-    const addListBtn = document.getElementById("add-list-btn");
-    const listSelect = document.getElementById("list");
-
-    // Initialize lists array
-    let lists = [];
-
-    // Load lists from localStorage
-    function loadLists() {
-        const savedLists = localStorage.getItem("custom-lists");
-
-        if (savedLists) {
-            lists = JSON.parse(savedLists);
-        } else {
-            // Default lists if none exist
-            lists = ["Personal", "Work", "Shopping"];
-            saveLists();
-        }
-
-        renderLists();
-        updateListDropdown();
-    }
-
-    // Save lists to localStorage
-    function saveLists() {
-        localStorage.setItem("custom-lists", JSON.stringify(lists));
-    }
-
-    // Render lists in the sidebar
-    function renderLists() {
-        listsContainer.innerHTML = '';
-
-        lists.forEach((listName, index) => {
-            const listItem = document.createElement("div");
-            listItem.classList.add("list-item");
-            listItem.innerHTML = `
-                <span class="list-name" data-index="${index}">${listName}</span>
-                <div class="list-actions">
-                    <button class="list-edit-btn" data-index="${index}">Edit</button>
-                    <button class="list-delete-btn" data-index="${index}">Delete</button>
-                </div>
-            `;
-
-            // Add click event to list name to filter tasks
-            listItem.querySelector('.list-name').addEventListener('click', function() {
-                filterTasksByList(listName);
-            });
-
-            // Add edit functionality
-            listItem.querySelector('.list-edit-btn').addEventListener('click', function(e) {
-                e.stopPropagation();
-                startEditingList(index, listItem);
-            });
-
-            // Add delete functionality
-            listItem.querySelector('.list-delete-btn').addEventListener('click', function(e) {
-                e.stopPropagation();
-                if (confirm(`Are you sure you want to delete the list "${listName}"?`)) {
-                    deleteList(index);
-                }
-            });
-
-            listsContainer.appendChild(listItem);
-        });
-    }
-
-    // Update the list dropdown in the task creation form
-    function updateListDropdown() {
-        // Clear current options except the default one
-        while (listSelect.options.length > 1) {
-            listSelect.remove(1);
-        }
-
-        // Add list options
-        lists.forEach(listName => {
-            const option = document.createElement("option");
-            option.value = listName;
-            option.textContent = listName;
-            listSelect.appendChild(option);
-        });
-    }
-
-    // Start editing a list
-    function startEditingList(index, listItem) {
-        const listNameEl = listItem.querySelector('.list-name');
-        const currentName = lists[index];
-
-        // Create edit input
-        const editInput = document.createElement("input");
-        editInput.classList.add("list-edit-input");
-        editInput.value = currentName;
-
-        // Replace list name with input
-        listNameEl.style.display = 'none';
-        listItem.insertBefore(editInput, listNameEl);
-        editInput.focus();
-
-        // Setup save on enter or blur
-        editInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                saveListEdit(index, editInput.value, listItem, listNameEl, editInput);
-            } else if (e.key === 'Escape') {
-                cancelListEdit(listItem, listNameEl, editInput);
-            }
-        });
-
-        editInput.addEventListener('blur', function() {
-            saveListEdit(index, editInput.value, listItem, listNameEl, editInput);
-        });
-    }
-
-    // Save list edit
-    function saveListEdit(index, newName, listItem, listNameEl, editInput) {
-        newName = newName.trim();
-
-        if (newName && newName !== lists[index]) {
-            const oldName = lists[index];
-            lists[index] = newName;
-            saveLists();
-            updateListDropdown();
-
-            // Update tasks with this list name
-            updateTasksWithNewListName(oldName, newName);
-        }
-
-        // Restore display
-        listNameEl.textContent = lists[index];
-        listNameEl.style.display = '';
-        editInput.remove();
-    }
-
-    // Cancel list edit
-    function cancelListEdit(listItem, listNameEl, editInput) {
-        listNameEl.style.display = '';
-        editInput.remove();
-    }
-
-    // Delete a list
-    function deleteList(index) {
-        const listName = lists[index];
-        lists.splice(index, 1);
-        saveLists();
-        renderLists();
-        updateListDropdown();
-
-        // Update tasks that were in this list
-        updateTasksWithDeletedList(listName);
-    }
-
-    // Update tasks when a list is renamed
-    function updateTasksWithNewListName(oldName, newName) {
-        const taskItems = document.querySelectorAll(".task-item");
-        let tasksUpdated = false;
-
-        taskItems.forEach(taskItem => {
-            const listDisplay = taskItem.querySelector("[data-field='list'] .display-text");
-            if (listDisplay && listDisplay.textContent === `List: ${oldName}`) {
-                listDisplay.textContent = `List: ${newName}`;
-                tasksUpdated = true;
-            }
-        });
-
-        if (tasksUpdated) {
-            saveTasks(); // Call your existing saveTasks function
-        }
-    }
-
-    // Update tasks when a list is deleted
-    function updateTasksWithDeletedList(deletedListName) {
-        const taskItems = document.querySelectorAll(".task-item");
-        let tasksUpdated = false;
-
-        taskItems.forEach(taskItem => {
-            const listDisplay = taskItem.querySelector("[data-field='list'] .display-text");
-            if (listDisplay && listDisplay.textContent === `List: ${deletedListName}`) {
-                listDisplay.textContent = "List: N/A";
-                tasksUpdated = true;
-            }
-        });
-
-        if (tasksUpdated) {
-            saveTasks(); // Call your existing saveTasks function
-        }
-    }
-
-    // Filter tasks by list
-    function filterTasksByList(listName) {
-        const taskItems = document.querySelectorAll(".task-item");
-
-        taskItems.forEach(taskItem => {
-            const taskList = taskItem.querySelector("[data-field='list'] .display-text").textContent.replace("List: ", "");
-
-            if (listName === taskList) {
-                taskItem.style.display = "flex";
-            } else {
-                taskItem.style.display = "none";
-            }
-        });
-
-        // Update the page title to show which list is being viewed
-        document.querySelector(".today-title").textContent = listName;
-    }
-
-    // Add a new list
-    function addNewList() {
-        const newListName = prompt("Enter a name for the new list:");
-
-        if (newListName && newListName.trim()) {
-            lists.push(newListName.trim());
-            saveLists();
-            renderLists();
-            updateListDropdown();
-        }
-    }
-
-    // Add click event to add list button
-    addListBtn.addEventListener("click", addNewList);
-
-    // Add event to show all tasks when "Today" is clicked
-    document.querySelector(".menu a:nth-child(3)").addEventListener("click", function() {
-        const taskItems = document.querySelectorAll(".task-item");
-        taskItems.forEach(taskItem => {
-            taskItem.style.display = "flex";
-        });
-        document.querySelector(".today-title").textContent = "Today";
-    });
-
-    // Initialize
-    loadLists();
-
-    // Add function to update list select in task editing
-    // Modify your existing setupInlineEditing function for list field
-    const originalSetupInlineEditing = window.setupInlineEditing || setupInlineEditing;
-    window.setupInlineEditing = function(element, task) {
-        // Call the original function first
-        originalSetupInlineEditing(element, task);
-
-        // Add special handling for list field dropdown
-        const field = element.dataset.field;
-        if (field === 'list') {
-            const editInput = element.querySelector('.edit-input');
-
-            // Clear and update options when editing starts
-            element.querySelector('.display-text').addEventListener('dblclick', function() {
-                // Clear current options
-                while (editInput.options.length > 0) {
-                    editInput.remove(0);
-                }
-
-                // Add N/A option
-                const naOption = document.createElement("option");
-                naOption.value = "N/A";
-                naOption.textContent = "N/A";
-                editInput.appendChild(naOption);
-
-                // Add list options
-                lists.forEach(listName => {
-                    const option = document.createElement("option");
-                    option.value = listName;
-                    option.textContent = listName;
-                    editInput.appendChild(option);
-                });
-
-                // Set current value
-                const currentList = element.querySelector('.display-text').textContent.replace("List: ", "");
-                for (let i = 0; i < editInput.options.length; i++) {
-                    if (editInput.options[i].value === currentList) {
-                        editInput.selectedIndex = i;
-                        break;
-                    }
-                }
-            });
-        }
-    };
-});
-
-// Add these functions to your existing JavaScript file
-
-document.addEventListener("DOMContentLoaded", function() {
-    // Get references to list management elements
-    const listsContainer = document.getElementById("lists-container");
-    const addListBtn = document.getElementById("add-list-btn");
-    const listSelect = document.getElementById("list");
-
-    // Initialize lists array
-    let lists = [];
-
-    // Load lists from localStorage
-    function loadLists() {
-        const savedLists = localStorage.getItem("custom-lists");
-
-        if (savedLists) {
-            lists = JSON.parse(savedLists);
-        } else {
-            // Default lists if none exist
-            lists = ["Personal", "Work", "Shopping"];
-            saveLists();
-        }
-
-        renderLists();
-        updateListDropdown();
-    }
-
-    // Save lists to localStorage
-    function saveLists() {
-        localStorage.setItem("custom-lists", JSON.stringify(lists));
-    }
-
-    // Render lists in the sidebar
-    function renderLists() {
-        listsContainer.innerHTML = '';
-
-        lists.forEach((listName, index) => {
-            const listItem = document.createElement("div");
-            listItem.classList.add("list-item");
-            listItem.innerHTML = `
-                <span class="list-name" data-index="${index}">${listName}</span>
-                <div class="list-actions">
-                    <button class="list-edit-btn" data-index="${index}">Edit</button>
-                    <button class="list-delete-btn" data-index="${index}">Delete</button>
-                </div>
-            `;
-
-            // Add click event to list name to filter tasks
-            listItem.querySelector('.list-name').addEventListener('click', function() {
-                filterTasksByList(listName);
-            });
-
-            // Add edit functionality
-            listItem.querySelector('.list-edit-btn').addEventListener('click', function(e) {
-                e.stopPropagation();
-                startEditingList(index, listItem);
-            });
-
-            // Add delete functionality
-            listItem.querySelector('.list-delete-btn').addEventListener('click', function(e) {
-                e.stopPropagation();
-                if (confirm(`Are you sure you want to delete the list "${listName}"?`)) {
-                    deleteList(index);
-                }
-            });
-
-            listsContainer.appendChild(listItem);
-        });
-    }
-
-    // Update the list dropdown in the task creation form
-    function updateListDropdown() {
-        // Clear current options except the default one
-        while (listSelect.options.length > 1) {
-            listSelect.remove(1);
-        }
-
-        // Add list options
-        lists.forEach(listName => {
-            const option = document.createElement("option");
-            option.value = listName;
-            option.textContent = listName;
-            listSelect.appendChild(option);
-        });
-    }
-
-    // Start editing a list
-    function startEditingList(index, listItem) {
-        const listNameEl = listItem.querySelector('.list-name');
-        const currentName = lists[index];
-
-        // Create edit input
-        const editInput = document.createElement("input");
-        editInput.classList.add("list-edit-input");
-        editInput.value = currentName;
-
-        // Replace list name with input
-        listNameEl.style.display = 'none';
-        listItem.insertBefore(editInput, listNameEl);
-        editInput.focus();
-
-        // Setup save on enter or blur
-        editInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                saveListEdit(index, editInput.value, listItem, listNameEl, editInput);
-            } else if (e.key === 'Escape') {
-                cancelListEdit(listItem, listNameEl, editInput);
-            }
-        });
-
-        editInput.addEventListener('blur', function() {
-            saveListEdit(index, editInput.value, listItem, listNameEl, editInput);
-        });
-    }
-
-    // Save list edit
-    function saveListEdit(index, newName, listItem, listNameEl, editInput) {
-        newName = newName.trim();
-
-        if (newName && newName !== lists[index]) {
-            const oldName = lists[index];
-            lists[index] = newName;
-            saveLists();
-            updateListDropdown();
-
-            // Update tasks with this list name
-            updateTasksWithNewListName(oldName, newName);
-        }
-
-        // Restore display
-        listNameEl.textContent = lists[index];
-        listNameEl.style.display = '';
-        editInput.remove();
-    }
-
-    // Cancel list edit
-    function cancelListEdit(listItem, listNameEl, editInput) {
-        listNameEl.style.display = '';
-        editInput.remove();
-    }
-
-    // Delete a list
-    function deleteList(index) {
-        const listName = lists[index];
-        lists.splice(index, 1);
-        saveLists();
-        renderLists();
-        updateListDropdown();
-
-        // Update tasks that were in this list
-        updateTasksWithDeletedList(listName);
-    }
-
-    // Update tasks when a list is renamed
-    function updateTasksWithNewListName(oldName, newName) {
-        const taskItems = document.querySelectorAll(".task-item");
-        let tasksUpdated = false;
-
-        taskItems.forEach(taskItem => {
-            const listDisplay = taskItem.querySelector("[data-field='list'] .display-text");
-            if (listDisplay && listDisplay.textContent === `List: ${oldName}`) {
-                listDisplay.textContent = `List: ${newName}`;
-                tasksUpdated = true;
-            }
-        });
-
-        if (tasksUpdated) {
-            saveTasks(); // Call your existing saveTasks function
-        }
-    }
-
-    // Update tasks when a list is deleted
-    function updateTasksWithDeletedList(deletedListName) {
-        const taskItems = document.querySelectorAll(".task-item");
-        let tasksUpdated = false;
-
-        taskItems.forEach(taskItem => {
-            const listDisplay = taskItem.querySelector("[data-field='list'] .display-text");
-            if (listDisplay && listDisplay.textContent === `List: ${deletedListName}`) {
-                listDisplay.textContent = "List: N/A";
-                tasksUpdated = true;
-            }
-        });
-
-        if (tasksUpdated) {
-            saveTasks(); // Call your existing saveTasks function
-        }
-    }
-
-    // Filter tasks by list
-    function filterTasksByList(listName) {
-        const taskItems = document.querySelectorAll(".task-item");
-
-        taskItems.forEach(taskItem => {
-            const taskList = taskItem.querySelector("[data-field='list'] .display-text").textContent.replace("List: ", "");
-
-            if (listName === taskList) {
-                taskItem.style.display = "flex";
-            } else {
-                taskItem.style.display = "none";
-            }
-        });
-
-        // Update the page title to show which list is being viewed
-        document.querySelector(".today-title").textContent = listName;
-    }
-
-    // Add a new list
-    function addNewList() {
-        const newListName = prompt("Enter a name for the new list:");
-
-        if (newListName && newListName.trim()) {
-            lists.push(newListName.trim());
-            saveLists();
-            renderLists();
-            updateListDropdown();
-        }
-    }
-
-    // Add click event to add list button
-    addListBtn.addEventListener("click", addNewList);
-
-    // Add event to show all tasks when "Today" is clicked
-    document.querySelector(".menu a:nth-child(3)").addEventListener("click", function() {
-        const taskItems = document.querySelectorAll(".task-item");
-        taskItems.forEach(taskItem => {
-            taskItem.style.display = "flex";
-        });
-        document.querySelector(".today-title").textContent = "Today";
-    });
-
-    // Initialize
-    loadLists();
-
-    // Add function to update list select in task editing
-    // Modify your existing setupInlineEditing function for list field
-    const originalSetupInlineEditing = window.setupInlineEditing || setupInlineEditing;
-    window.setupInlineEditing = function(element, task) {
-        // Call the original function first
-        originalSetupInlineEditing(element, task);
-
-        // Add special handling for list field dropdown
-        const field = element.dataset.field;
-        if (field === 'list') {
-            const editInput = element.querySelector('.edit-input');
-
-            // Clear and update options when editing starts
-            element.querySelector('.display-text').addEventListener('dblclick', function() {
-                // Clear current options
-                while (editInput.options.length > 0) {
-                    editInput.remove(0);
-                }
-
-                // Add N/A option
-                const naOption = document.createElement("option");
-                naOption.value = "N/A";
-                naOption.textContent = "N/A";
-                editInput.appendChild(naOption);
-
-                // Add list options
-                lists.forEach(listName => {
-                    const option = document.createElement("option");
-                    option.value = listName;
-                    option.textContent = listName;
-                    editInput.appendChild(option);
-                });
-
-                // Set current value
-                const currentList = element.querySelector('.display-text').textContent.replace("List: ", "");
-                for (let i = 0; i < editInput.options.length; i++) {
-                    if (editInput.options[i].value === currentList) {
-                        editInput.selectedIndex = i;
-                        break;
-                    }
-                }
-            });
-        }
+    // Auto-expand textarea based on content
+    window.autoExpand = function(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight) + 'px';
     };
 });

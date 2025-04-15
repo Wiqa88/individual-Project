@@ -1,5 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,12 +27,12 @@
 
         <div class="sidebar-left">
             <div class="menu">
-                <a href="#"><img src="add.png" alt="Add Task">Add Task</a>
-                <a href="#"><img src="search.png" alt="Search">Search</a>
-                <a href="#">Today</a>
-                <a href="#">Next 7 Days</a>
-                <a href="#">Important</a>
-                <a href="#">Inbox</a>
+                <a href="#" id="add-task-link"><i class="fas fa-plus-circle"></i> Add Task</a>
+                <a href="#"><i class="fas fa-search"></i> Search</a>
+                <a href="#"><i class="fas fa-calendar-day"></i> Today</a>
+                <a href="#"><i class="fas fa-calendar-week"></i> Next 7 Days</a>
+                <a href="#"><i class="fas fa-star"></i> Important</a>
+                <a href="#"><i class="fas fa-inbox"></i> Inbox</a>
             </div>
 
             <div class="separator-line"></div>
@@ -36,7 +40,7 @@
             <div class="menu">
                 <div class="lists-header">
                     <span>Lists</span>
-                    <button id="add-list-btn" title="Add New List"><img src="add.png" alt="Add List"></button>
+                    <button id="add-list-btn" title="Add New List"><i class="fas fa-plus"></i></button>
                 </div>
                 <div id="lists-container">
                     <!-- Lists will be dynamically added here -->
@@ -71,6 +75,7 @@
                             <!-- Custom lists will be added dynamically -->
                         </select>
                     </div>
+
 
                     <div class="button-row">
                         <button id="cancel-task">Cancel</button>
