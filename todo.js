@@ -310,6 +310,19 @@ document.addEventListener("DOMContentLoaded", function() {
         // List with inline editing (select dropdown)
         const listDiv = createEditableSelectField('list', task.list, task, ['N/A', ...lists], 'List: ');
 
+        // Store task ID in the DOM element for reference
+        taskItem.dataset.id = task.id;
+
+        // Create new edit-like button
+        const editButton = document.createElement("button");
+        editButton.className = "subtask-button";
+        editButton.innerHTML = '<i class="fas fa-edit"></i> Edit Details'; // Using edit icon from Font Awesome
+        editButton.addEventListener("click", function(e) {
+            e.stopPropagation(); // Prevent event bubbling
+            // Add your functionality here later
+            alert("Edit button clicked for task: " + task.title);
+        });
+
         // Delete button
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "×";
@@ -319,7 +332,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
 
         // Assemble the task item
-        metadata.append(dateDiv, reminderDiv, priorityDiv, listDiv);
+        metadata.append(dateDiv, reminderDiv, priorityDiv, listDiv, editButton);
         taskContent.append(titleDiv, descDiv, metadata);
         taskItemInner.append(taskRing, taskContent);
         taskItem.append(taskItemInner, deleteButton);

@@ -2,7 +2,6 @@
 
 
 
-
 /* Reset Styles */
 * {
     margin: 0;
@@ -1068,4 +1067,23 @@ textarea.edit-input {
 .sidebar-left .menu a:hover i {
     transform: scale(1.1);
     transition: transform 0.2s ease;
+}
+
+.subtask-button {
+    background: none;
+    border: none;
+    color: #1e3a8a;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    margin-top: 5px;
+}
+
+.subtask-button:hover {
+    background-color: #f0f4ff;
 }
