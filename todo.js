@@ -723,18 +723,20 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // ----------------------
-    // Subtasks Management
-    // ----------------------
+// First, let's modify the subtask object structure to include date and reminder fields
+
+// Update the saveNewSubtask function to include date and reminder fields
     function saveNewSubtask(task, subtaskInput, subtaskItem, subtasksContainer) {
         const subtaskText = subtaskInput.value.trim();
 
         if (subtaskText) {
-            // Create a new subtask object
+            // Create a new subtask object with date and reminder fields
             const newSubtask = {
                 id: Date.now(), // Unique ID
                 text: subtaskText,
-                completed: false
+                completed: false,
+                date: null,     // Add date field
+                reminder: null  // Add reminder field
             };
 
             // Initialize subtasks array if it doesn't exist
@@ -835,6 +837,109 @@ document.addEventListener("DOMContentLoaded", function() {
                     });
                 });
 
+                // Create metadata container
+                const metadata = document.createElement('div');
+                metadata.className = 'subtask-metadata';
+
+                // Create date field
+                const dateContainer = document.createElement('div');
+                dateContainer.className = 'subtask-date';
+
+                const dateLabel = document.createElement('span');
+                dateLabel.className = 'date-label';
+                dateLabel.textContent = 'Date: ';
+
+                const dateValue = document.createElement('span');
+                dateValue.className = 'date-value';
+                dateValue.textContent = newSubtask.date ? formatDate(newSubtask.date) : 'N/A';
+                dateValue.style.cursor = 'pointer';
+
+                dateValue.addEventListener('click', function(e) {
+                    e.stopPropagation();
+
+                    // Create date input
+                    const dateInput = document.createElement('input');
+                    dateInput.type = 'date';
+                    dateInput.className = 'subtask-date-input';
+                    dateInput.value = newSubtask.date ? convertToInputDateFormat(newSubtask.date) : '';
+
+                    // Replace date text with input
+                    dateValue.style.display = 'none';
+                    dateContainer.appendChild(dateInput);
+                    dateInput.focus();
+
+                    // Handle blur
+                    dateInput.addEventListener('blur', function() {
+                        saveSubtaskDate(newSubtask, dateInput, dateValue, task);
+                    });
+
+                    // Handle Enter and Escape
+                    dateInput.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            saveSubtaskDate(newSubtask, dateInput, dateValue, task);
+                        } else if (e.key === 'Escape') {
+                            e.preventDefault();
+                            dateValue.style.display = 'inline';
+                            dateInput.remove();
+                        }
+                    });
+                });
+
+                dateContainer.appendChild(dateLabel);
+                dateContainer.appendChild(dateValue);
+
+                // Create reminder field
+                const reminderContainer = document.createElement('div');
+                reminderContainer.className = 'subtask-reminder';
+
+                const reminderLabel = document.createElement('span');
+                reminderLabel.className = 'reminder-label';
+                reminderLabel.textContent = 'Reminder: ';
+
+                const reminderValue = document.createElement('span');
+                reminderValue.className = 'reminder-value';
+                reminderValue.textContent = newSubtask.reminder ? formatDate(newSubtask.reminder) : 'N/A';
+                reminderValue.style.cursor = 'pointer';
+
+                reminderValue.addEventListener('click', function(e) {
+                    e.stopPropagation();
+
+                    // Create reminder input
+                    const reminderInput = document.createElement('input');
+                    reminderInput.type = 'date';
+                    reminderInput.className = 'subtask-reminder-input';
+                    reminderInput.value = newSubtask.reminder ? convertToInputDateFormat(newSubtask.reminder) : '';
+
+                    // Replace reminder text with input
+                    reminderValue.style.display = 'none';
+                    reminderContainer.appendChild(reminderInput);
+                    reminderInput.focus();
+
+                    // Handle blur
+                    reminderInput.addEventListener('blur', function() {
+                        saveSubtaskReminder(newSubtask, reminderInput, reminderValue, task);
+                    });
+
+                    // Handle Enter and Escape
+                    reminderInput.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            saveSubtaskReminder(newSubtask, reminderInput, reminderValue, task);
+                        } else if (e.key === 'Escape') {
+                            e.preventDefault();
+                            reminderValue.style.display = 'inline';
+                            reminderInput.remove();
+                        }
+                    });
+                });
+
+                reminderContainer.appendChild(reminderLabel);
+                reminderContainer.appendChild(reminderValue);
+
+                metadata.appendChild(dateContainer);
+                metadata.appendChild(reminderContainer);
+
                 // Create delete button
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'delete-subtask';
@@ -866,6 +971,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 editable.appendChild(displayText);
                 subtaskItem.appendChild(checkbox);
                 subtaskItem.appendChild(editable);
+                subtaskItem.appendChild(metadata); // Add the metadata
                 subtaskItem.appendChild(deleteBtn);
 
                 // Save changes
@@ -883,6 +989,288 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             }, 300);
         }
+    }
+
+// Add functions to save date and reminder for subtasks
+    function saveSubtaskDate(subtask, dateInput, dateValue, task) {
+        const newDate = dateInput.value; // In yyyy-mm-dd format
+
+        // Update subtask
+        subtask.date = newDate || null;
+
+        // Update display
+        dateValue.textContent = subtask.date ? formatDate(subtask.date) : 'N/A';
+        dateValue.style.display = 'inline';
+
+        // Remove input
+        dateInput.remove();
+
+        // Save changes
+        saveTask(task);
+    }
+
+    function saveSubtaskReminder(subtask, reminderInput, reminderValue, task) {
+        const newReminder = reminderInput.value; // In yyyy-mm-dd format
+
+        // Update subtask
+        subtask.reminder = newReminder || null;
+
+        // Update display
+        reminderValue.textContent = subtask.reminder ? formatDate(subtask.reminder) : 'N/A';
+        reminderValue.style.display = 'inline';
+
+        // Remove input
+        reminderInput.remove();
+
+        // Save changes
+        saveTask(task);
+    }
+
+// Finally, update the renderSubtasks function to render date and reminder fields
+    function renderSubtasks(task, taskContent) {
+        // Skip if no subtasks
+        if (!task.subtasks || task.subtasks.length === 0) return;
+
+        // Create subtasks container
+        const subtasksContainer = document.createElement('div');
+        subtasksContainer.className = 'subtasks-container';
+
+        // Render each subtask
+        task.subtasks.forEach(subtask => {
+            const subtaskItem = document.createElement('div');
+            subtaskItem.className = 'subtask-item';
+
+            // Create checkbox
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'subtask-checkbox';
+            checkbox.checked = subtask.completed;
+            checkbox.addEventListener('change', function() {
+                subtask.completed = this.checked;
+
+                // Update subtask appearance
+                const subtaskText = subtaskItem.querySelector('.display-text');
+                if (this.checked) {
+                    subtaskText.style.textDecoration = 'line-through';
+                    subtaskText.style.color = '#888';
+                } else {
+                    subtaskText.style.textDecoration = 'none';
+                    subtaskText.style.color = '';
+                }
+
+                // Save changes
+                saveTask(task);
+            });
+
+            // Create editable text
+            const editable = document.createElement('div');
+            editable.className = 'editable-content';
+
+            const displayText = document.createElement('div');
+            displayText.className = 'display-text';
+            displayText.textContent = subtask.text;
+
+            // Apply styling for completed subtasks
+            if (subtask.completed) {
+                displayText.style.textDecoration = 'line-through';
+                displayText.style.color = '#888';
+            }
+
+            // Make display text clickable for editing
+            displayText.addEventListener('click', function(e) {
+                e.stopPropagation(); // Stop propagation
+
+                // Create edit input
+                const editInput = document.createElement('textarea');
+                editInput.className = 'expanding-input';
+                editInput.value = subtask.text;
+
+                // Replace display text with input
+                displayText.style.display = 'none';
+                editable.appendChild(editInput);
+
+                // Show animation
+                setTimeout(() => {
+                    editInput.classList.add('show');
+                    editInput.focus();
+                    autoExpand(editInput);
+                    editInput.addEventListener('input', () => autoExpand(editInput));
+                }, 10);
+
+                // Set up one-time click away listener
+                function handleClickAway(e) {
+                    if (e.target !== editInput && e.target !== displayText) {
+                        saveSubtaskEdit(subtask, editInput, displayText, task);
+
+                        // Remove this event listener
+                        document.removeEventListener("click", handleClickAway);
+                    }
+                }
+
+                // Add the click away handler after a small delay
+                setTimeout(() => {
+                    document.addEventListener("click", handleClickAway);
+                }, 10);
+
+                // Save on Enter or cancel on Escape
+                editInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        saveSubtaskEdit(subtask, editInput, displayText, task);
+                        document.removeEventListener("click", handleClickAway);
+                    } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        editInput.classList.remove('show');
+                        setTimeout(() => {
+                            displayText.style.display = 'block';
+                            editInput.remove();
+                        }, 300);
+                        document.removeEventListener("click", handleClickAway);
+                    }
+                });
+            });
+
+            // Create metadata container
+            const metadata = document.createElement('div');
+            metadata.className = 'subtask-metadata';
+
+            // Create date field
+            const dateContainer = document.createElement('div');
+            dateContainer.className = 'subtask-date';
+
+            const dateLabel = document.createElement('span');
+            dateLabel.className = 'date-label';
+            dateLabel.textContent = 'Date: ';
+
+            const dateValue = document.createElement('span');
+            dateValue.className = 'date-value';
+            dateValue.textContent = subtask.date ? formatDate(subtask.date) : 'N/A';
+            dateValue.style.cursor = 'pointer';
+
+            dateValue.addEventListener('click', function(e) {
+                e.stopPropagation();
+
+                // Create date input
+                const dateInput = document.createElement('input');
+                dateInput.type = 'date';
+                dateInput.className = 'subtask-date-input';
+                dateInput.value = subtask.date ? convertToInputDateFormat(subtask.date) : '';
+
+                // Replace date text with input
+                dateValue.style.display = 'none';
+                dateContainer.appendChild(dateInput);
+                dateInput.focus();
+
+                // Handle blur
+                dateInput.addEventListener('blur', function() {
+                    saveSubtaskDate(subtask, dateInput, dateValue, task);
+                });
+
+                // Handle Enter and Escape
+                dateInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        saveSubtaskDate(subtask, dateInput, dateValue, task);
+                    } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        dateValue.style.display = 'inline';
+                        dateInput.remove();
+                    }
+                });
+            });
+
+            dateContainer.appendChild(dateLabel);
+            dateContainer.appendChild(dateValue);
+
+            // Create reminder field
+            const reminderContainer = document.createElement('div');
+            reminderContainer.className = 'subtask-reminder';
+
+            const reminderLabel = document.createElement('span');
+            reminderLabel.className = 'reminder-label';
+            reminderLabel.textContent = 'Reminder: ';
+
+            const reminderValue = document.createElement('span');
+            reminderValue.className = 'reminder-value';
+            reminderValue.textContent = subtask.reminder ? formatDate(subtask.reminder) : 'N/A';
+            reminderValue.style.cursor = 'pointer';
+
+            reminderValue.addEventListener('click', function(e) {
+                e.stopPropagation();
+
+                // Create reminder input
+                const reminderInput = document.createElement('input');
+                reminderInput.type = 'date';
+                reminderInput.className = 'subtask-reminder-input';
+                reminderInput.value = subtask.reminder ? convertToInputDateFormat(subtask.reminder) : '';
+
+                // Replace reminder text with input
+                reminderValue.style.display = 'none';
+                reminderContainer.appendChild(reminderInput);
+                reminderInput.focus();
+
+                // Handle blur
+                reminderInput.addEventListener('blur', function() {
+                    saveSubtaskReminder(subtask, reminderInput, reminderValue, task);
+                });
+
+                // Handle Enter and Escape
+                reminderInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        saveSubtaskReminder(subtask, reminderInput, reminderValue, task);
+                    } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        reminderValue.style.display = 'inline';
+                        reminderInput.remove();
+                    }
+                });
+            });
+
+            reminderContainer.appendChild(reminderLabel);
+            reminderContainer.appendChild(reminderValue);
+
+            metadata.appendChild(dateContainer);
+            metadata.appendChild(reminderContainer);
+
+            // Create delete button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-subtask';
+            deleteBtn.innerHTML = '×';
+            deleteBtn.addEventListener('click', function() {
+                // Remove from task's subtasks array
+                task.subtasks = task.subtasks.filter(st => st.id !== subtask.id);
+
+                // Remove from DOM with animation
+                subtaskItem.style.opacity = '0';
+                subtaskItem.style.height = '0';
+                subtaskItem.style.margin = '0';
+                subtaskItem.style.transition = 'all 0.3s ease';
+
+                setTimeout(() => {
+                    subtaskItem.remove();
+
+                    // Remove container if empty
+                    if (task.subtasks.length === 0) {
+                        subtasksContainer.remove();
+                    }
+
+                    // Save changes
+                    saveTask(task);
+                }, 300);
+            });
+
+            // Assemble the subtask item
+            editable.appendChild(displayText);
+            subtaskItem.appendChild(checkbox);
+            subtaskItem.appendChild(editable);
+            subtaskItem.appendChild(metadata); // Add the metadata
+            subtaskItem.appendChild(deleteBtn);
+            subtasksContainer.appendChild(subtaskItem);
+        });
+
+        // Add to the task content
+        taskContent.appendChild(subtasksContainer);
     }
 
     function saveSubtaskEdit(subtask, editInput, displayText, task) {

@@ -1,14 +1,19 @@
 
+Pasted content
+44.95 KB •2,402 lines
+                •
+                Formatting may be inconsistent from source
 
 
 
-/* Reset Styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
-}
+
+                    /* Reset Styles */
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                    font-family: Arial, sans-serif;
+                }
 
 /* Container that holds the sidebars and main content */
 .container {
@@ -2332,4 +2337,71 @@ textarea.edit-input {
     width: 20px;
     height: 20px;
     flex-shrink: 0;
+}
+
+/* Subtask metadata styling */
+.subtask-metadata {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-left: 5px;
+    flex-grow: 1;
+}
+
+.subtask-date, .subtask-reminder {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.date-label, .reminder-label {
+    font-weight: 500;
+    color: #555;
+}
+
+.date-value, .reminder-value {
+    color: #777;
+    padding: 2px 4px;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+.date-value:hover, .reminder-value:hover {
+    background-color: #f0f0f0;
+}
+
+.subtask-date-input, .subtask-reminder-input {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 2px 5px;
+    font-size: 12px;
+    color: #666;
+    max-width: 120px;
+}
+
+/* Update subtask item layout */
+.subtask-item {
+    display: flex;
+    align-items: flex-start;
+    margin: 8px 0;
+    gap: 8px;
+    transition: all 0.3s ease;
+    flex-wrap: wrap;
+}
+
+.subtask-item .editable-content {
+    min-width: 150px;
+    max-width: 250px;
+}
+
+/* Make subtask container wider */
+.subtasks-container {
+    margin-top: 12px;
+    margin-left: 20px;
+    border-left: 2px dashed #e0e0e0;
+    padding-left: 15px;
+    padding-bottom: 5px;
 }
