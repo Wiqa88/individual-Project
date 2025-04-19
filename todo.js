@@ -438,8 +438,10 @@ document.addEventListener("DOMContentLoaded", function() {
         // Don't show initially
         editInput.style.display = "none";
 
-        // Set up clicking functionality instead of double-click
-        displayText.addEventListener("click", function() {
+        // Set up clicking functionality
+        displayText.addEventListener("click", function(e) {
+            e.stopPropagation(); // Stop propagation to prevent document click handler
+
             // Enter edit mode
             displayText.style.display = "none";
             editInput.style.display = "block";
@@ -454,30 +456,39 @@ document.addEventListener("DOMContentLoaded", function() {
             }
 
             editInput.focus();
-        });
 
-        // Handle clicking away
-        document.addEventListener("click", function handleClickAway(event) {
-            if (editInput.style.display === "block" && event.target !== editInput && event.target !== displayText) {
-                saveFieldEdit(fieldName, editInput.value, task, displayText, prefix);
-                editInput.classList.remove("show");
+            // Set up one-time click away listener
+            function handleClickAway(e) {
+                if (e.target !== editInput && e.target !== displayText) {
+                    // Save the edit and remove the edit field
+                    saveFieldEdit(fieldName, editInput.value, task, displayText, prefix);
+                    editInput.classList.remove("show");
 
-                // Only remove after transition completes for textareas
-                if (isTextArea) {
-                    setTimeout(() => {
+                    // Only remove after transition completes for textareas
+                    if (isTextArea) {
+                        setTimeout(() => {
+                            if (editInput.parentNode) {
+                                editInput.style.display = "none";
+                                displayText.style.display = "block";
+                            }
+                        }, 300);
+                    } else {
                         editInput.style.display = "none";
                         displayText.style.display = "block";
-                    }, 300);
-                } else {
-                    editInput.style.display = "none";
-                    displayText.style.display = "block";
-                }
+                    }
 
-                document.removeEventListener("click", handleClickAway);
+                    // Remove this event listener
+                    document.removeEventListener("click", handleClickAway);
+                }
             }
+
+            // Add the click away handler after a small delay to avoid immediate triggering
+            setTimeout(() => {
+                document.addEventListener("click", handleClickAway);
+            }, 10);
         });
 
-        // Handle saving on Enter key
+        // Handle saving on Enter key or Escape
         editInput.addEventListener("keydown", function(e) {
             if (e.key === "Enter" && !e.shiftKey && !isTextArea) {
                 e.preventDefault();
@@ -488,8 +499,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     editInput.style.display = "none";
                     displayText.style.display = "block";
                 }, isTextArea ? 300 : 0);
+
+                // Remove any click away handlers
+                document.removeEventListener("click", function() {});
             } else if (e.key === "Escape") {
                 // Cancel edit and restore original value
+                e.preventDefault();
                 editInput.classList.remove("show");
 
                 setTimeout(() => {
@@ -497,6 +512,9 @@ document.addEventListener("DOMContentLoaded", function() {
                     editInput.style.display = "none";
                     editInput.value = task[fieldName] || '';
                 }, isTextArea ? 300 : 0);
+
+                // Remove any click away handlers
+                document.removeEventListener("click", function() {});
             }
         });
 
@@ -535,28 +553,49 @@ document.addEventListener("DOMContentLoaded", function() {
             selectInput.appendChild(option);
         });
 
-        // Set up editing functionality - changed to single click
-        displayText.addEventListener("click", function() {
+        // Set up editing functionality
+        displayText.addEventListener("click", function(e) {
+            e.stopPropagation(); // Stop propagation to prevent document click handler
+
             // Enter edit mode
             displayText.style.display = "none";
             selectInput.style.display = "block";
             selectInput.focus();
+
+            // Set up one-time click away listener
+            function handleClickAway(e) {
+                if (e.target !== selectInput && e.target !== displayText) {
+                    const selectedValue = selectInput.options[selectInput.selectedIndex].value;
+                    saveFieldEdit(fieldName, selectedValue, task, displayText, prefix);
+
+                    // Remove this event listener
+                    document.removeEventListener("click", handleClickAway);
+                }
+            }
+
+            // Add the click away handler after a small delay to avoid immediate triggering
+            setTimeout(() => {
+                document.addEventListener("click", handleClickAway);
+            }, 10);
         });
 
-        // Handle saving on blur or Enter key
-        selectInput.addEventListener("blur", function() {
-            const selectedValue = this.options[this.selectedIndex].value;
-            saveFieldEdit(fieldName, selectedValue, task, displayText, prefix);
-        });
-
+        // Handle saving on Enter key or Escape
         selectInput.addEventListener("keydown", function(e) {
             if (e.key === "Enter") {
                 e.preventDefault();
-                this.blur(); // Trigger blur to save
+                const selectedValue = this.options[this.selectedIndex].value;
+                saveFieldEdit(fieldName, selectedValue, task, displayText, prefix);
+
+                // Remove any click away handlers
+                document.removeEventListener("click", function() {});
             } else if (e.key === "Escape") {
                 // Cancel edit
+                e.preventDefault();
                 displayText.style.display = "block";
                 selectInput.style.display = "none";
+
+                // Remove any click away handlers
+                document.removeEventListener("click", function() {});
             }
         });
 
@@ -594,7 +633,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Hide the edit input
         const editInput = displayElement.nextElementSibling;
-        editInput.style.display = "none";
+        if (editInput) {
+            editInput.style.display = "none";
+        }
 
         // Only save if value actually changed
         if (originalValue !== value) {
@@ -741,7 +782,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 displayText.textContent = newSubtask.text;
 
                 // Make display text clickable for editing
-                displayText.addEventListener('click', function() {
+                displayText.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Stop propagation
+
                     // Create edit input
                     const editInput = document.createElement('textarea');
                     editInput.className = 'expanding-input';
@@ -759,21 +802,35 @@ document.addEventListener("DOMContentLoaded", function() {
                         editInput.addEventListener('input', () => autoExpand(editInput));
                     }, 10);
 
-                    // Save on blur or Enter
-                    editInput.addEventListener('blur', function() {
-                        saveSubtaskEdit(newSubtask, editInput, displayText, task);
-                    });
+                    // Set up one-time click away listener
+                    function handleClickAway(e) {
+                        if (e.target !== editInput && e.target !== displayText) {
+                            saveSubtaskEdit(newSubtask, editInput, displayText, task);
 
+                            // Remove this event listener
+                            document.removeEventListener("click", handleClickAway);
+                        }
+                    }
+
+                    // Add the click away handler after a small delay
+                    setTimeout(() => {
+                        document.addEventListener("click", handleClickAway);
+                    }, 10);
+
+                    // Save on Enter or cancel on Escape
                     editInput.addEventListener('keydown', function(e) {
                         if (e.key === 'Enter' && !e.shiftKey) {
                             e.preventDefault();
                             saveSubtaskEdit(newSubtask, editInput, displayText, task);
+                            document.removeEventListener("click", handleClickAway);
                         } else if (e.key === 'Escape') {
+                            e.preventDefault();
                             editInput.classList.remove('show');
                             setTimeout(() => {
                                 displayText.style.display = 'block';
                                 editInput.remove();
                             }, 300);
+                            document.removeEventListener("click", handleClickAway);
                         }
                     });
                 });
@@ -907,7 +964,9 @@ document.addEventListener("DOMContentLoaded", function() {
             }
 
             // Make display text clickable for editing
-            displayText.addEventListener('click', function() {
+            displayText.addEventListener('click', function(e) {
+                e.stopPropagation(); // Stop propagation
+
                 // Create edit input
                 const editInput = document.createElement('textarea');
                 editInput.className = 'expanding-input';
@@ -925,21 +984,35 @@ document.addEventListener("DOMContentLoaded", function() {
                     editInput.addEventListener('input', () => autoExpand(editInput));
                 }, 10);
 
-                // Save on blur or Enter
-                editInput.addEventListener('blur', function() {
-                    saveSubtaskEdit(subtask, editInput, displayText, task);
-                });
+                // Set up one-time click away listener
+                function handleClickAway(e) {
+                    if (e.target !== editInput && e.target !== displayText) {
+                        saveSubtaskEdit(subtask, editInput, displayText, task);
 
+                        // Remove this event listener
+                        document.removeEventListener("click", handleClickAway);
+                    }
+                }
+
+                // Add the click away handler after a small delay
+                setTimeout(() => {
+                    document.addEventListener("click", handleClickAway);
+                }, 10);
+
+                // Save on Enter or cancel on Escape
                 editInput.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
                         saveSubtaskEdit(subtask, editInput, displayText, task);
+                        document.removeEventListener("click", handleClickAway);
                     } else if (e.key === 'Escape') {
+                        e.preventDefault();
                         editInput.classList.remove('show');
                         setTimeout(() => {
                             displayText.style.display = 'block';
                             editInput.remove();
                         }, 300);
+                        document.removeEventListener("click", handleClickAway);
                     }
                 });
             });
