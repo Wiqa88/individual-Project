@@ -216,7 +216,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 priority: priority.value !== 'priority' ? priority.value : 'medium',
                 list: listSelect.value !== 'default' ? listSelect.value : 'N/A',
                 completed: false,
-                createdAt: new Date().toISOString()
+                createdAt: new Date().toISOString(),
+                subtasks: [] // Initialize empty subtasks array
             };
 
             // Add task to global array
@@ -313,9 +314,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // Store task ID in the DOM element for reference
         taskItem.dataset.id = task.id;
 
-// Replace the existing subtask button in createTaskElement function with this implementation:
-
-// Create new subtask button
+        // Create new subtask button
         const subtaskButton = document.createElement("button");
         subtaskButton.className = "subtask-button";
         subtaskButton.innerHTML = '<i class="fas fa-plus"></i> Add Subtask'; // Plus icon
@@ -382,311 +381,6 @@ document.addEventListener("DOMContentLoaded", function() {
             });
         });
 
-// Add this function to your JavaScript
-        function saveNewSubtask(task, subtaskInput, subtaskItem, subtasksContainer) {
-            const subtaskText = subtaskInput.value.trim();
-
-            if (subtaskText) {
-                // Create a new subtask object
-                const newSubtask = {
-                    id: Date.now(), // Unique ID
-                    text: subtaskText,
-                    completed: false
-                };
-
-                // Initialize subtasks array if it doesn't exist
-                if (!task.subtasks) {
-                    task.subtasks = [];
-                }
-
-                // Add to task's subtasks
-                task.subtasks.push(newSubtask);
-
-                // Remove the input field
-                subtaskInput.classList.remove('show');
-
-                // Create the permanent subtask element
-                setTimeout(() => {
-                    subtaskItem.innerHTML = ''; // Clear existing content
-
-                    // Create checkbox
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.className = 'subtask-checkbox';
-                    checkbox.addEventListener('change', function() {
-                        newSubtask.completed = this.checked;
-
-                        // Update subtask appearance
-                        const subtaskText = subtaskItem.querySelector('.display-text');
-                        if (this.checked) {
-                            subtaskText.style.textDecoration = 'line-through';
-                            subtaskText.style.color = '#888';
-                        } else {
-                            subtaskText.style.textDecoration = 'none';
-                            subtaskText.style.color = '';
-                        }
-
-                        // Save changes
-                        saveTask(task);
-                    });
-
-                    // Create editable text
-                    const editable = document.createElement('div');
-                    editable.className = 'editable-content';
-
-                    const displayText = document.createElement('div');
-                    displayText.className = 'display-text';
-                    displayText.textContent = newSubtask.text;
-
-                    // Make display text clickable for editing
-                    displayText.addEventListener('click', function() {
-                        // Create edit input
-                        const editInput = document.createElement('textarea');
-                        editInput.className = 'expanding-input';
-                        editInput.value = newSubtask.text;
-
-                        // Replace display text with input
-                        displayText.style.display = 'none';
-                        editable.appendChild(editInput);
-
-                        // Show animation
-                        setTimeout(() => {
-                            editInput.classList.add('show');
-                            editInput.focus();
-                            autoExpand(editInput);
-                            editInput.addEventListener('input', () => autoExpand(editInput));
-                        }, 10);
-
-                        // Save on blur or Enter
-                        editInput.addEventListener('blur', function() {
-                            saveSubtaskEdit(newSubtask, editInput, displayText, task);
-                        });
-
-                        editInput.addEventListener('keydown', function(e) {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                saveSubtaskEdit(newSubtask, editInput, displayText, task);
-                            } else if (e.key === 'Escape') {
-                                editInput.classList.remove('show');
-                                setTimeout(() => {
-                                    displayText.style.display = 'block';
-                                    editInput.remove();
-                                }, 300);
-                            }
-                        });
-                    });
-
-                    // Create delete button
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.className = 'delete-subtask';
-                    deleteBtn.innerHTML = '×';
-                    deleteBtn.addEventListener('click', function() {
-                        // Remove from task's subtasks array
-                        task.subtasks = task.subtasks.filter(st => st.id !== newSubtask.id);
-
-                        // Remove from DOM with animation
-                        subtaskItem.style.opacity = '0';
-                        subtaskItem.style.height = '0';
-                        subtaskItem.style.margin = '0';
-                        subtaskItem.style.transition = 'all 0.3s ease';
-
-                        setTimeout(() => {
-                            subtaskItem.remove();
-
-                            // Remove container if empty
-                            if (task.subtasks.length === 0) {
-                                subtasksContainer.remove();
-                            }
-
-                            // Save changes
-                            saveTask(task);
-                        }, 300);
-                    });
-
-                    // Assemble the subtask item
-                    editable.appendChild(displayText);
-                    subtaskItem.appendChild(checkbox);
-                    subtaskItem.appendChild(editable);
-                    subtaskItem.appendChild(deleteBtn);
-
-                    // Save changes
-                    saveTask(task);
-                }, 300);
-            } else {
-                // If empty, just remove the item
-                subtaskInput.classList.remove('show');
-                setTimeout(() => {
-                    subtaskItem.remove();
-
-                    // Remove container if empty
-                    if (subtasksContainer.children.length === 0) {
-                        subtasksContainer.remove();
-                    }
-                }, 300);
-            }
-        }
-
-// Add this function to save subtask edits
-        function saveSubtaskEdit(subtask, editInput, displayText, task) {
-            const newText = editInput.value.trim();
-
-            if (newText) {
-                // Update subtask
-                subtask.text = newText;
-                displayText.textContent = newText;
-
-                // Save changes
-                saveTask(task);
-            }
-
-            // Hide input with animation
-            editInput.classList.remove('show');
-            setTimeout(() => {
-                displayText.style.display = 'block';
-                editInput.remove();
-            }, 300);
-        }
-
-// Add this function to save task updates
-        function saveTask(task) {
-            // Find task in global array and update it
-            const taskIndex = tasks.findIndex(t => t.id === task.id);
-            if (taskIndex !== -1) {
-                tasks[taskIndex] = task;
-                saveTasks();
-            }
-        }
-
-// Add this to renderTasks function to render existing subtasks
-// This should go after you create taskItem but before you append it to taskList
-
-// Add after you create the task element but before appending to list
-        function renderSubtasks(task, taskContent) {
-            // Skip if no subtasks
-            if (!task.subtasks || task.subtasks.length === 0) return;
-
-            // Create subtasks container
-            const subtasksContainer = document.createElement('div');
-            subtasksContainer.className = 'subtasks-container';
-
-            // Render each subtask
-            task.subtasks.forEach(subtask => {
-                const subtaskItem = document.createElement('div');
-                subtaskItem.className = 'subtask-item';
-
-                // Create checkbox
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'subtask-checkbox';
-                checkbox.checked = subtask.completed;
-                checkbox.addEventListener('change', function() {
-                    subtask.completed = this.checked;
-
-                    // Update subtask appearance
-                    const subtaskText = subtaskItem.querySelector('.display-text');
-                    if (this.checked) {
-                        subtaskText.style.textDecoration = 'line-through';
-                        subtaskText.style.color = '#888';
-                    } else {
-                        subtaskText.style.textDecoration = 'none';
-                        subtaskText.style.color = '';
-                    }
-
-                    // Save changes
-                    saveTask(task);
-                });
-
-                // Create editable text
-                const editable = document.createElement('div');
-                editable.className = 'editable-content';
-
-                const displayText = document.createElement('div');
-                displayText.className = 'display-text';
-                displayText.textContent = subtask.text;
-
-                // Apply styling for completed subtasks
-                if (subtask.completed) {
-                    displayText.style.textDecoration = 'line-through';
-                    displayText.style.color = '#888';
-                }
-
-                // Make display text clickable for editing
-                displayText.addEventListener('click', function() {
-                    // Create edit input
-                    const editInput = document.createElement('textarea');
-                    editInput.className = 'expanding-input';
-                    editInput.value = subtask.text;
-
-                    // Replace display text with input
-                    displayText.style.display = 'none';
-                    editable.appendChild(editInput);
-
-                    // Show animation
-                    setTimeout(() => {
-                        editInput.classList.add('show');
-                        editInput.focus();
-                        autoExpand(editInput);
-                        editInput.addEventListener('input', () => autoExpand(editInput));
-                    }, 10);
-
-                    // Save on blur or Enter
-                    editInput.addEventListener('blur', function() {
-                        saveSubtaskEdit(subtask, editInput, displayText, task);
-                    });
-
-                    editInput.addEventListener('keydown', function(e) {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            saveSubtaskEdit(subtask, editInput, displayText, task);
-                        } else if (e.key === 'Escape') {
-                            editInput.classList.remove('show');
-                            setTimeout(() => {
-                                displayText.style.display = 'block';
-                                editInput.remove();
-                            }, 300);
-                        }
-                    });
-                });
-
-                // Create delete button
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'delete-subtask';
-                deleteBtn.innerHTML = '×';
-                deleteBtn.addEventListener('click', function() {
-                    // Remove from task's subtasks array
-                    task.subtasks = task.subtasks.filter(st => st.id !== subtask.id);
-
-                    // Remove from DOM with animation
-                    subtaskItem.style.opacity = '0';
-                    subtaskItem.style.height = '0';
-                    subtaskItem.style.margin = '0';
-                    subtaskItem.style.transition = 'all 0.3s ease';
-
-                    setTimeout(() => {
-                        subtaskItem.remove();
-
-                        // Remove container if empty
-                        if (task.subtasks.length === 0) {
-                            subtasksContainer.remove();
-                        }
-
-                        // Save changes
-                        saveTask(task);
-                    }, 300);
-                });
-
-                // Assemble the subtask item
-                editable.appendChild(displayText);
-                subtaskItem.appendChild(checkbox);
-                subtaskItem.appendChild(editable);
-                subtaskItem.appendChild(deleteBtn);
-                subtasksContainer.appendChild(subtaskItem);
-            });
-
-            // Add to the task content
-            taskContent.appendChild(subtasksContainer);
-        }
-
         // Delete button
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "×";
@@ -698,6 +392,10 @@ document.addEventListener("DOMContentLoaded", function() {
         // Assemble the task item
         metadata.append(dateDiv, reminderDiv, priorityDiv, listDiv);
         taskContent.append(titleDiv, descDiv, metadata, subtaskButton);
+
+        // Render existing subtasks if any
+        renderSubtasks(task, taskContent);
+
         taskItemInner.append(taskRing, taskContent);
         taskItem.append(taskItemInner, deleteButton);
 
@@ -982,6 +680,307 @@ document.addEventListener("DOMContentLoaded", function() {
         taskElements.forEach(task => {
             taskList.appendChild(task);
         });
+    }
+
+    // ----------------------
+    // Subtasks Management
+    // ----------------------
+    function saveNewSubtask(task, subtaskInput, subtaskItem, subtasksContainer) {
+        const subtaskText = subtaskInput.value.trim();
+
+        if (subtaskText) {
+            // Create a new subtask object
+            const newSubtask = {
+                id: Date.now(), // Unique ID
+                text: subtaskText,
+                completed: false
+            };
+
+            // Initialize subtasks array if it doesn't exist
+            if (!task.subtasks) {
+                task.subtasks = [];
+            }
+
+            // Add to task's subtasks
+            task.subtasks.push(newSubtask);
+
+            // Remove the input field
+            subtaskInput.classList.remove('show');
+
+            // Create the permanent subtask element
+            setTimeout(() => {
+                subtaskItem.innerHTML = ''; // Clear existing content
+
+                // Create checkbox
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'subtask-checkbox';
+                checkbox.addEventListener('change', function() {
+                    newSubtask.completed = this.checked;
+
+                    // Update subtask appearance
+                    const subtaskText = subtaskItem.querySelector('.display-text');
+                    if (this.checked) {
+                        subtaskText.style.textDecoration = 'line-through';
+                        subtaskText.style.color = '#888';
+                    } else {
+                        subtaskText.style.textDecoration = 'none';
+                        subtaskText.style.color = '';
+                    }
+
+                    // Save changes
+                    saveTask(task);
+                });
+
+                // Create editable text
+                const editable = document.createElement('div');
+                editable.className = 'editable-content';
+
+                const displayText = document.createElement('div');
+                displayText.className = 'display-text';
+                displayText.textContent = newSubtask.text;
+
+                // Make display text clickable for editing
+                displayText.addEventListener('click', function() {
+                    // Create edit input
+                    const editInput = document.createElement('textarea');
+                    editInput.className = 'expanding-input';
+                    editInput.value = newSubtask.text;
+
+                    // Replace display text with input
+                    displayText.style.display = 'none';
+                    editable.appendChild(editInput);
+
+                    // Show animation
+                    setTimeout(() => {
+                        editInput.classList.add('show');
+                        editInput.focus();
+                        autoExpand(editInput);
+                        editInput.addEventListener('input', () => autoExpand(editInput));
+                    }, 10);
+
+                    // Save on blur or Enter
+                    editInput.addEventListener('blur', function() {
+                        saveSubtaskEdit(newSubtask, editInput, displayText, task);
+                    });
+
+                    editInput.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            saveSubtaskEdit(newSubtask, editInput, displayText, task);
+                        } else if (e.key === 'Escape') {
+                            editInput.classList.remove('show');
+                            setTimeout(() => {
+                                displayText.style.display = 'block';
+                                editInput.remove();
+                            }, 300);
+                        }
+                    });
+                });
+
+                // Create delete button
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-subtask';
+                deleteBtn.innerHTML = '×';
+                deleteBtn.addEventListener('click', function() {
+                    // Remove from task's subtasks array
+                    task.subtasks = task.subtasks.filter(st => st.id !== newSubtask.id);
+
+                    // Remove from DOM with animation
+                    subtaskItem.style.opacity = '0';
+                    subtaskItem.style.height = '0';
+                    subtaskItem.style.margin = '0';
+                    subtaskItem.style.transition = 'all 0.3s ease';
+
+                    setTimeout(() => {
+                        subtaskItem.remove();
+
+                        // Remove container if empty
+                        if (task.subtasks.length === 0) {
+                            subtasksContainer.remove();
+                        }
+
+                        // Save changes
+                        saveTask(task);
+                    }, 300);
+                });
+
+                // Assemble the subtask item
+                editable.appendChild(displayText);
+                subtaskItem.appendChild(checkbox);
+                subtaskItem.appendChild(editable);
+                subtaskItem.appendChild(deleteBtn);
+
+                // Save changes
+                saveTask(task);
+            }, 300);
+        } else {
+            // If empty, just remove the item
+            subtaskInput.classList.remove('show');
+            setTimeout(() => {
+                subtaskItem.remove();
+
+                // Remove container if empty
+                if (subtasksContainer.children.length === 0) {
+                    subtasksContainer.remove();
+                }
+            }, 300);
+        }
+    }
+
+    function saveSubtaskEdit(subtask, editInput, displayText, task) {
+        const newText = editInput.value.trim();
+
+        if (newText) {
+            // Update subtask
+            subtask.text = newText;
+            displayText.textContent = newText;
+
+            // Save changes
+            saveTask(task);
+        }
+
+        // Hide input with animation
+        editInput.classList.remove('show');
+        setTimeout(() => {
+            displayText.style.display = 'block';
+            editInput.remove();
+        }, 300);
+    }
+
+    function saveTask(task) {
+        // Find task in global array and update it
+        const taskIndex = tasks.findIndex(t => t.id === task.id);
+        if (taskIndex !== -1) {
+            tasks[taskIndex] = task;
+            saveTasks();
+        }
+    }
+
+    function renderSubtasks(task, taskContent) {
+        // Skip if no subtasks
+        if (!task.subtasks || task.subtasks.length === 0) return;
+
+        // Create subtasks container
+        const subtasksContainer = document.createElement('div');
+        subtasksContainer.className = 'subtasks-container';
+
+        // Render each subtask
+        task.subtasks.forEach(subtask => {
+            const subtaskItem = document.createElement('div');
+            subtaskItem.className = 'subtask-item';
+
+            // Create checkbox
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'subtask-checkbox';
+            checkbox.checked = subtask.completed;
+            checkbox.addEventListener('change', function() {
+                subtask.completed = this.checked;
+
+                // Update subtask appearance
+                const subtaskText = subtaskItem.querySelector('.display-text');
+                if (this.checked) {
+                    subtaskText.style.textDecoration = 'line-through';
+                    subtaskText.style.color = '#888';
+                } else {
+                    subtaskText.style.textDecoration = 'none';
+                    subtaskText.style.color = '';
+                }
+
+                // Save changes
+                saveTask(task);
+            });
+
+            // Create editable text
+            const editable = document.createElement('div');
+            editable.className = 'editable-content';
+
+            const displayText = document.createElement('div');
+            displayText.className = 'display-text';
+            displayText.textContent = subtask.text;
+
+            // Apply styling for completed subtasks
+            if (subtask.completed) {
+                displayText.style.textDecoration = 'line-through';
+                displayText.style.color = '#888';
+            }
+
+            // Make display text clickable for editing
+            displayText.addEventListener('click', function() {
+                // Create edit input
+                const editInput = document.createElement('textarea');
+                editInput.className = 'expanding-input';
+                editInput.value = subtask.text;
+
+                // Replace display text with input
+                displayText.style.display = 'none';
+                editable.appendChild(editInput);
+
+                // Show animation
+                setTimeout(() => {
+                    editInput.classList.add('show');
+                    editInput.focus();
+                    autoExpand(editInput);
+                    editInput.addEventListener('input', () => autoExpand(editInput));
+                }, 10);
+
+                // Save on blur or Enter
+                editInput.addEventListener('blur', function() {
+                    saveSubtaskEdit(subtask, editInput, displayText, task);
+                });
+
+                editInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        saveSubtaskEdit(subtask, editInput, displayText, task);
+                    } else if (e.key === 'Escape') {
+                        editInput.classList.remove('show');
+                        setTimeout(() => {
+                            displayText.style.display = 'block';
+                            editInput.remove();
+                        }, 300);
+                    }
+                });
+            });
+
+            // Create delete button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-subtask';
+            deleteBtn.innerHTML = '×';
+            deleteBtn.addEventListener('click', function() {
+                // Remove from task's subtasks array
+                task.subtasks = task.subtasks.filter(st => st.id !== subtask.id);
+
+                // Remove from DOM with animation
+                subtaskItem.style.opacity = '0';
+                subtaskItem.style.height = '0';
+                subtaskItem.style.margin = '0';
+                subtaskItem.style.transition = 'all 0.3s ease';
+
+                setTimeout(() => {
+                    subtaskItem.remove();
+
+                    // Remove container if empty
+                    if (task.subtasks.length === 0) {
+                        subtasksContainer.remove();
+                    }
+
+                    // Save changes
+                    saveTask(task);
+                }, 300);
+            });
+
+            // Assemble the subtask item
+            editable.appendChild(displayText);
+            subtaskItem.appendChild(checkbox);
+            subtaskItem.appendChild(editable);
+            subtaskItem.appendChild(deleteBtn);
+            subtasksContainer.appendChild(subtaskItem);
+        });
+
+        // Add to the task content
+        taskContent.appendChild(subtasksContainer);
     }
 
     // ----------------------
