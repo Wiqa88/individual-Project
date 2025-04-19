@@ -331,9 +331,18 @@ document.addEventListener("DOMContentLoaded", function() {
             deleteTask(task.id, taskItem);
         });
 
-        // Assemble the task item
-        metadata.append(dateDiv, reminderDiv, priorityDiv, listDiv, editButton);
-        taskContent.append(titleDiv, descDiv, metadata);
+// Assemble the task item
+        metadata.append(dateDiv, reminderDiv, priorityDiv, listDiv);
+// Create new subtask button
+        const subtaskButton = document.createElement("button");
+        subtaskButton.className = "subtask-button";
+        subtaskButton.innerHTML = '<i class="fas fa-plus"></i> Add Subtask'; // Plus icon
+        subtaskButton.addEventListener("click", function(e) {
+            e.stopPropagation(); // Prevent event bubbling
+            // Add your functionality here later
+            alert("Add Subtask clicked for task: " + task.title);
+        });
+        taskContent.append(titleDiv, descDiv, metadata, subtaskButton);
         taskItemInner.append(taskRing, taskContent);
         taskItem.append(taskItemInner, deleteButton);
 
