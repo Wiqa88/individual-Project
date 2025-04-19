@@ -313,14 +313,14 @@ document.addEventListener("DOMContentLoaded", function() {
         // Store task ID in the DOM element for reference
         taskItem.dataset.id = task.id;
 
-        // Create new edit-like button
+// Create new subtask button
         const editButton = document.createElement("button");
         editButton.className = "subtask-button";
-        editButton.innerHTML = '<i class="fas fa-edit"></i> Edit Details'; // Using edit icon from Font Awesome
+        editButton.innerHTML = '<i class="fas fa-plus"></i> Add Subtask'; // Changed to plus icon
         editButton.addEventListener("click", function(e) {
             e.stopPropagation(); // Prevent event bubbling
             // Add your functionality here later
-            alert("Edit button clicked for task: " + task.title);
+            alert("Add Subtask clicked for task: " + task.title);
         });
 
         // Delete button
