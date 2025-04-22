@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // Create sort button with icon
     const sortButton = document.createElement("button");
     sortButton.classList.add("sort-button");
-    sortButton.innerHTML = '<img src="sort.png" alt="Sort"> Sort';
+    sortButton.innerHTML = '<i class="fas fa-sort"></i> Sort';
     sortingContainer.appendChild(sortButton);
 
     // Create sort menu
@@ -315,138 +315,7 @@ document.addEventListener("DOMContentLoaded", function() {
         taskItem.dataset.id = task.id;
 
         // Create new subtask button
-        const subtaskButton = document.createElement("button");
-        subtaskButton.className = "subtask-button";
-        subtaskButton.innerHTML = '<i class="fas fa-plus"></i> Add Subtask'; // Plus icon
-        subtaskButton.addEventListener("click", function (e) {
-            e.stopPropagation(); // Prevent event bubbling
-
-            // Check if there's already a subtasks container
-            let subtasksContainer = taskContent.querySelector('.subtasks-container');
-            if (!subtasksContainer) {
-                // Create subtasks container if it doesn't exist
-                subtasksContainer = document.createElement('div');
-                subtasksContainer.className = 'subtasks-container';
-                taskContent.appendChild(subtasksContainer);
-
-                // Initialize subtasks array if it doesn't exist
-                if (!task.subtasks) {
-                    task.subtasks = [];
-                }
-            }
-
-            // Create a new subtask creation form
-            const subtaskItem = document.createElement('div');
-            subtaskItem.className = 'subtask-item';
-
-            // Create checkbox
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.className = 'subtask-checkbox';
-
-            // Create expanding input for new subtask
-            const subtaskInput = document.createElement('textarea');
-            subtaskInput.className = 'expanding-input';
-            subtaskInput.placeholder = 'Enter subtask...';
-            subtaskInput.style.display = 'block';
-
-            // Create the subtask input row for date
-            const subtaskInputRow = document.createElement('div');
-            subtaskInputRow.className = 'subtask-input-row';
-
-            // Create date input
-            const subtaskDateInput = document.createElement('input');
-            subtaskDateInput.type = 'text';
-            subtaskDateInput.className = 'subtask-date-field';
-            subtaskDateInput.placeholder = 'Date';
-            subtaskDateInput.addEventListener('focus', function () {
-                this.type = 'date';
-            });
-            subtaskDateInput.addEventListener('blur', function () {
-                if (!this.value) {
-                    this.type = 'text';
-                }
-            });
-
-            // Add inputs to the row
-            subtaskInputRow.appendChild(subtaskDateInput);
-
-            // Add the subtask creation elements to DOM
-            subtaskItem.appendChild(checkbox);
-            subtaskItem.appendChild(subtaskInput);
-            subtaskItem.appendChild(subtaskInputRow);
-            subtasksContainer.appendChild(subtaskItem);
-
-            // Add subtask add and cancel buttons
-            const subtaskButtonRow = document.createElement('div');
-            subtaskButtonRow.className = 'subtask-button-row';
-
-            const cancelSubtaskBtn = document.createElement('button');
-            cancelSubtaskBtn.textContent = 'Cancel';
-            cancelSubtaskBtn.className = 'cancel-subtask-btn';
-
-            const addSubtaskBtn = document.createElement('button');
-            addSubtaskBtn.textContent = 'Add';
-            addSubtaskBtn.className = 'add-subtask-btn';
-
-            subtaskButtonRow.appendChild(cancelSubtaskBtn);
-            subtaskButtonRow.appendChild(addSubtaskBtn);
-            subtaskItem.appendChild(subtaskButtonRow);
-
-            // Focus and show animation
-            setTimeout(() => {
-                subtaskInput.classList.add('show');
-                subtaskInput.focus();
-                autoExpand(subtaskInput);
-                subtaskInput.addEventListener('input', () => autoExpand(subtaskInput));
-            }, 10);
-
-            // Cancel button handler
-            cancelSubtaskBtn.addEventListener('click', function () {
-                subtaskInput.classList.remove('show');
-                setTimeout(() => {
-                    subtaskItem.remove();
-                    // Remove container if empty
-                    if (subtasksContainer.children.length === 0) {
-                        subtasksContainer.remove();
-                    }
-                }, 300);
-            });
-
-            // Add button handler
-            addSubtaskBtn.addEventListener('click', function () {
-                saveNewSubtask(
-                    task,
-                    subtaskInput,
-                    subtaskItem,
-                    subtasksContainer,
-                    subtaskDateInput.value
-                );
-            });
-
-            // Save on Enter
-            subtaskInput.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    saveNewSubtask(
-                        task,
-                        subtaskInput,
-                        subtaskItem,
-                        subtasksContainer,
-                        subtaskDateInput.value
-                    );
-                } else if (e.key === 'Escape') {
-                    subtaskInput.classList.remove('show');
-                    setTimeout(() => {
-                        subtaskItem.remove();
-                        // Remove container if empty
-                        if (subtasksContainer.children.length === 0) {
-                            subtasksContainer.remove();
-                        }
-                    }, 300);
-                }
-            });
-        });
+        const subtaskButton = createAddSubtaskButton(task, taskContent);
 
         // Delete button
         const deleteButton = document.createElement("button");
@@ -568,8 +437,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 }, isTextArea ? 300 : 0);
 
                 // Remove any click away handlers
-                document.removeEventListener("click", function () {
-                });
+                document.removeEventListener("click", function () {});
             } else if (e.key === "Escape") {
                 // Cancel edit and restore original value
                 e.preventDefault();
@@ -582,8 +450,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 }, isTextArea ? 300 : 0);
 
                 // Remove any click away handlers
-                document.removeEventListener("click", function () {
-                });
+                document.removeEventListener("click", function () {});
             }
         });
 
@@ -656,8 +523,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 saveFieldEdit(fieldName, selectedValue, task, displayText, prefix);
 
                 // Remove any click away handlers
-                document.removeEventListener("click", function () {
-                });
+                document.removeEventListener("click", function () {});
             } else if (e.key === "Escape") {
                 // Cancel edit
                 e.preventDefault();
@@ -665,8 +531,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 selectInput.style.display = "none";
 
                 // Remove any click away handlers
-                document.removeEventListener("click", function () {
-                });
+                document.removeEventListener("click", function () {});
             }
         });
 
@@ -794,16 +659,17 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    function saveNewSubtask(task, subtaskInput, subtaskItem, subtasksContainer, dateValue) {
+    // UPDATED: Removed date parameter from the function
+    function saveNewSubtask(task, subtaskInput, subtaskItem, subtasksContainer) {
         const subtaskText = subtaskInput.value.trim();
 
         if (subtaskText) {
-            // Create a new subtask object with date field only
+            // Create a new subtask object WITHOUT date field
             const newSubtask = {
                 id: Date.now(), // Unique ID
                 text: subtaskText,
-                completed: false,
-                date: dateValue || null // Only keep date field
+                completed: false
+                // date field removed
             };
 
             // Initialize subtasks array if it doesn't exist
@@ -904,60 +770,6 @@ document.addEventListener("DOMContentLoaded", function() {
                     });
                 });
 
-                // Create metadata container
-                const metadata = document.createElement('div');
-                metadata.className = 'subtask-metadata';
-
-                // Create date field
-                const dateContainer = document.createElement('div');
-                dateContainer.className = 'subtask-date';
-
-                const dateLabel = document.createElement('span');
-                dateLabel.className = 'date-label';
-                dateLabel.textContent = 'Date: ';
-
-                const dateValue = document.createElement('span');
-                dateValue.className = 'date-value';
-                dateValue.textContent = newSubtask.date ? formatDate(newSubtask.date) : 'N/A';
-                dateValue.style.cursor = 'pointer';
-
-                dateValue.addEventListener('click', function (e) {
-                    e.stopPropagation();
-
-                    // Create date input
-                    const dateInput = document.createElement('input');
-                    dateInput.type = 'date';
-                    dateInput.className = 'subtask-date-input';
-                    dateInput.value = newSubtask.date ? convertToInputDateFormat(newSubtask.date) : '';
-
-                    // Replace date text with input
-                    dateValue.style.display = 'none';
-                    dateContainer.appendChild(dateInput);
-                    dateInput.focus();
-
-                    // Handle blur
-                    dateInput.addEventListener('blur', function () {
-                        saveSubtaskDate(newSubtask, dateInput, dateValue, task);
-                    });
-
-                    // Handle Enter and Escape
-                    dateInput.addEventListener('keydown', function (e) {
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            saveSubtaskDate(newSubtask, dateInput, dateValue, task);
-                        } else if (e.key === 'Escape') {
-                            e.preventDefault();
-                            dateValue.style.display = 'inline';
-                            dateInput.remove();
-                        }
-                    });
-                });
-
-                dateContainer.appendChild(dateLabel);
-                dateContainer.appendChild(dateValue);
-
-                metadata.appendChild(dateContainer);
-
                 // Create delete button
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'delete-subtask';
@@ -985,11 +797,10 @@ document.addEventListener("DOMContentLoaded", function() {
                     }, 300);
                 });
 
-                // Assemble the subtask item
+                // Assemble the subtask item (WITHOUT metadata)
                 editable.appendChild(displayText);
                 subtaskItem.appendChild(checkbox);
                 subtaskItem.appendChild(editable);
-                subtaskItem.appendChild(metadata); // Add the metadata
                 subtaskItem.appendChild(deleteBtn);
 
                 // Save changes
@@ -1009,25 +820,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // Add function to save date for subtasks
-    function saveSubtaskDate(subtask, dateInput, dateValue, task) {
-        const newDate = dateInput.value; // In yyyy-mm-dd format
-
-        // Update subtask
-        subtask.date = newDate || null;
-
-        // Update display
-        dateValue.textContent = subtask.date ? formatDate(subtask.date) : 'N/A';
-        dateValue.style.display = 'inline';
-
-        // Remove input
-        dateInput.remove();
-
-        // Save changes
-        saveTask(task);
-    }
-
-    // Render subtasks with date field only
+    // UPDATED: Only handles text editing, no date editing
     function saveSubtaskEdit(subtask, editInput, displayText, task) {
         const newText = editInput.value.trim();
 
@@ -1057,6 +850,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
+    // UPDATED: Removed date display from subtasks
     function renderSubtasks(task, taskContent) {
         // Skip if no subtasks
         if (!task.subtasks || task.subtasks.length === 0) return;
@@ -1120,7 +914,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 editable.appendChild(editInput);
 
                 // Show animation
-                setTimeout(() => {
+                setTimeoutsetTimeout(() => {
                     editInput.classList.add('show');
                     editInput.focus();
                     autoExpand(editInput);
@@ -1199,6 +993,122 @@ document.addEventListener("DOMContentLoaded", function() {
         taskContent.appendChild(subtasksContainer);
     }
 
+    // NEW: Create a function for the Add Subtask button
+    function createAddSubtaskButton(task, taskContent) {
+        const subtaskButton = document.createElement("button");
+        subtaskButton.className = "subtask-button";
+        subtaskButton.innerHTML = '<i class="fas fa-plus"></i> Add Subtask';
+        subtaskButton.addEventListener("click", function (e) {
+            e.stopPropagation(); // Prevent event bubbling
+
+            // Check if there's already a subtasks container
+            let subtasksContainer = taskContent.querySelector('.subtasks-container');
+            if (!subtasksContainer) {
+                // Create subtasks container if it doesn't exist
+                subtasksContainer = document.createElement('div');
+                subtasksContainer.className = 'subtasks-container';
+                taskContent.appendChild(subtasksContainer);
+
+                // Initialize subtasks array if it doesn't exist
+                if (!task.subtasks) {
+                    task.subtasks = [];
+                }
+            }
+
+            // Create a new subtask creation form
+            const subtaskItem = document.createElement('div');
+            subtaskItem.className = 'subtask-item';
+
+            // Create checkbox
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'subtask-checkbox';
+
+            // Create expanding input for new subtask
+            const subtaskInput = document.createElement('textarea');
+            subtaskInput.className = 'expanding-input';
+            subtaskInput.placeholder = 'Enter subtask...';
+            subtaskInput.style.display = 'block';
+
+            // Add the subtask creation elements to DOM (NO date input row)
+            subtaskItem.appendChild(checkbox);
+            subtaskItem.appendChild(subtaskInput);
+            subtasksContainer.appendChild(subtaskItem);
+
+            // Add subtask add and cancel buttons
+            const subtaskButtonRow = document.createElement('div');
+            subtaskButtonRow.className = 'subtask-button-row';
+            subtaskButtonRow.style.marginTop = '8px';
+
+            const cancelSubtaskBtn = document.createElement('button');
+            cancelSubtaskBtn.textContent = 'Cancel';
+            cancelSubtaskBtn.className = 'cancel-subtask-btn';
+            cancelSubtaskBtn.style.cssText = 'padding: 5px 10px; background: #ccc; color: #333; border: none; border-radius: 3px; cursor: pointer;';
+
+            const addSubtaskBtn = document.createElement('button');
+            addSubtaskBtn.textContent = 'Add';
+            addSubtaskBtn.className = 'add-subtask-btn';
+            addSubtaskBtn.style.cssText = 'padding: 5px 10px; background: #1e3a8a; color: white; border: none; border-radius: 3px; cursor: pointer; margin-left: 5px;';
+
+            subtaskButtonRow.appendChild(cancelSubtaskBtn);
+            subtaskButtonRow.appendChild(addSubtaskBtn);
+            subtaskItem.appendChild(subtaskButtonRow);
+
+            // Focus and show animation
+            setTimeout(() => {
+                subtaskInput.classList.add('show');
+                subtaskInput.focus();
+                autoExpand(subtaskInput);
+                subtaskInput.addEventListener('input', () => autoExpand(subtaskInput));
+            }, 10);
+
+            // Cancel button handler
+            cancelSubtaskBtn.addEventListener('click', function () {
+                subtaskInput.classList.remove('show');
+                setTimeout(() => {
+                    subtaskItem.remove();
+                    // Remove container if empty
+                    if (subtasksContainer.children.length === 0) {
+                        subtasksContainer.remove();
+                    }
+                }, 300);
+            });
+
+            // Add button handler - Note: no date is passed
+            addSubtaskBtn.addEventListener('click', function () {
+                saveNewSubtask(
+                    task,
+                    subtaskInput,
+                    subtaskItem,
+                    subtasksContainer
+                );
+            });
+
+            // Save on Enter
+            subtaskInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    saveNewSubtask(
+                        task,
+                        subtaskInput,
+                        subtaskItem,
+                        subtasksContainer
+                    );
+                } else if (e.key === 'Escape') {
+                    subtaskInput.classList.remove('show');
+                    setTimeout(() => {
+                        subtaskItem.remove();
+                        // Remove container if empty
+                        if (subtasksContainer.children.length === 0) {
+                            subtasksContainer.remove();
+                        }
+                    }, 300);
+                }
+            });
+        });
+
+        return subtaskButton;
+    }
 
     // ----------------------
     // List Management
@@ -1477,7 +1387,6 @@ document.addEventListener("DOMContentLoaded", function() {
             taskList.appendChild(taskItem);
         });
     }
-    
 
     function loadLists() {
         const savedLists = localStorage.getItem("custom-lists");
@@ -1558,4 +1467,4 @@ document.addEventListener("DOMContentLoaded", function() {
         textarea.style.height = 'auto';
         textarea.style.height = (textarea.scrollHeight) + 'px';
     };
-}); // This closing brace was missing
+});
