@@ -849,25 +849,38 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-
     function toggleTaskCompletion(task, taskRingElement, taskItemElement) {
-        task.completed = !task.completed;
+        // Add animation class
+        taskRingElement.classList.add("completing");
 
-        // Update UI
-        if (task.completed) {
-            taskRingElement.classList.add("completed");
-            taskItemElement.style.opacity = "0.6";
-        } else {
-            taskRingElement.classList.remove("completed");
-            taskItemElement.style.opacity = "1";
-        }
+        // Listen for animation end and then update the completed state
+        taskRingElement.addEventListener("animationend", function handler() {
+            // Remove the animation class and the event listener
+            taskRingElement.classList.remove("completing");
+            taskRingElement.removeEventListener("animationend", handler);
 
-        // Update task in global array
-        const taskIndex = tasks.findIndex(t => t.id === task.id);
-        if (taskIndex !== -1) {
-            tasks[taskIndex].completed = task.completed;
-            saveTasks();
-        }
+            // Update the completed state
+            task.completed = !task.completed;
+
+            // Update UI
+            if (task.completed) {
+                taskRingElement.classList.add("completed");
+                // Add fading animation to the task item
+                taskItemElement.classList.add("task-item-fading");
+            } else {
+                taskRingElement.classList.remove("completed");
+                taskItemElement.style.opacity = "1";
+                // Remove fading class if it exists
+                taskItemElement.classList.remove("task-item-fading");
+            }
+
+            // Update task in global array
+            const taskIndex = tasks.findIndex(t => t.id === task.id);
+            if (taskIndex !== -1) {
+                tasks[taskIndex].completed = task.completed;
+                saveTasks();
+            }
+        }, { once: true });
     }
 
     function deleteTask(taskId, taskElement) {

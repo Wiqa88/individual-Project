@@ -2404,3 +2404,48 @@ textarea.edit-input {
     padding-bottom: 5px;
 }
 
+
+                    /* Task Completion Animation */
+                    @keyframes taskComplete {
+                        0% {
+                            transform: scale(1);
+                        }
+                        50% {
+                            transform: scale(1.2);
+                        }
+                        60% {
+                            transform: scale(1.2) rotate(5deg);
+                        }
+                        70% {
+                            transform: scale(1.2) rotate(-5deg);
+                        }
+                        80% {
+                            transform: scale(1.2) rotate(3deg);
+                        }
+                        90% {
+                            transform: scale(1.2) rotate(-3deg);
+                        }
+                        100% {
+                            transform: scale(1);
+                        }
+                    }
+
+                    .task-ring.completing {
+                        animation: taskComplete 0.6s ease-in-out;
+                    }
+
+                    /* Add a subtle fade effect for the task item */
+                    @keyframes taskItemFade {
+                        0% {
+                            opacity: 1;
+                        }
+                        100% {
+                            opacity: 0.6;
+                        }
+                    }
+
+                    .task-item-fading {
+                        animation: taskItemFade 0.8s ease-in-out forwards;
+                    }
+
+
