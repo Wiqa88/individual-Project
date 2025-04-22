@@ -790,33 +790,16 @@ document.addEventListener("DOMContentLoaded", function() {
             const taskIndex = tasks.findIndex(t => t.id === task.id);
             if (taskIndex !== -1) {
                 tasks[taskIndex][fieldName] = value;
-                saveTasks();
-            }
+                saveTasks()
 
-            // If the list was changed, check if we need to reapply the current filter
-            if (fieldName === 'list') {
-                // Get the current view/filter from the page title
-                const currentView = document.querySelector(".today-title").textContent;
-
-                // If we're viewing a specific list
-                if (lists.includes(currentView)) {
-                    // If task was changed to a different list than the current view
-                    if (value !== currentView) {
-                        // Hide this task since it no longer belongs in the current list view
-                        const taskElement = displayElement.closest('li');
-                        if (taskElement) {
-
-                            // After transition completes, hide the element
-                            setTimeout(() => {
-                                taskElement.style.display = "none";
-                            }, 300);
-                        }
-                    }
+                if (fieldName === 'list') {
+                    renderTasks(); // Re-render the task list if the list was changed
                 }
+
+
             }
         }
     }
-
 
     function toggleTaskCompletion(task, taskRingElement, taskItemElement) {
         task.completed = !task.completed;
