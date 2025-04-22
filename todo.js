@@ -410,12 +410,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
             // Add task to global array
             tasks.push(newTask);
-
-            // Create task element
+// Create task element
             const taskItem = createTaskElement(newTask);
             taskList.appendChild(taskItem);
 
-            // Save tasks to localStorage
+// Add this line:
+            removeNoTasksMessage();
+
+// Save tasks to localStorage
             saveTasks();
 
             // Reset form
@@ -433,6 +435,7 @@ document.addEventListener("DOMContentLoaded", function() {
         taskDescription.value = '';
         dueDate.value = '';
         reminder.value = '';
+
         priority.value = 'priority';
         listSelect.value = 'default';
 
@@ -440,6 +443,9 @@ document.addEventListener("DOMContentLoaded", function() {
         taskTitle.style.height = 'auto';
         taskDescription.style.height = 'auto';
     }
+
+
+
 
     function createTaskElement(task) {
         const taskItem = document.createElement("li");
@@ -457,6 +463,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (task.completed) {
             taskItem.style.opacity = '0.6';
         }
+
 
         // Task item inner structure
         const taskItemInner = document.createElement("div");
@@ -1169,6 +1176,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 }, 300);
             });
 
+
+
+
+
+
             // Assemble the subtask item (WITHOUT metadata)
             editable.appendChild(displayText);
             subtaskItem.appendChild(checkbox);
@@ -1634,6 +1646,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
         return '';
     }
+
+
+
 
     function parseDateString(dateString) {
         // Handle special cases
