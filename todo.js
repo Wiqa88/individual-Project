@@ -673,16 +673,36 @@ document.addEventListener("DOMContentLoaded", function() {
         selectInput.className = "edit-input";
         selectInput.style.display = "none";
 
-        // Add options
-        options.forEach(optionValue => {
-            const option = document.createElement("option");
-            option.value = optionValue;
-            option.textContent = optionValue;
-            if (value === optionValue) {
-                option.selected = true;
-            }
-            selectInput.appendChild(option);
-        });
+        // Add options with proper capitalization for priority
+        if (fieldName === 'priority') {
+            // Use capitalized options for priority
+            const capitalizedOptions = [
+                {value: 'low', text: 'Low'},
+                {value: 'medium', text: 'Medium'},
+                {value: 'high', text: 'High'}
+            ];
+
+            capitalizedOptions.forEach(opt => {
+                const option = document.createElement("option");
+                option.value = opt.value;
+                option.textContent = opt.text;
+                if (value === opt.value) {
+                    option.selected = true;
+                }
+                selectInput.appendChild(option);
+            });
+        } else {
+            // For non-priority fields, use regular options
+            options.forEach(optionValue => {
+                const option = document.createElement("option");
+                option.value = optionValue;
+                option.textContent = optionValue;
+                if (value === optionValue) {
+                    option.selected = true;
+                }
+                selectInput.appendChild(option);
+            });
+        }
 
         // Set up editing functionality
         displayText.addEventListener("click", function (e) {
@@ -758,8 +778,14 @@ document.addEventListener("DOMContentLoaded", function() {
         // Update task object
         task[fieldName] = value;
 
-        // Update display
-        displayElement.textContent = prefix + (value || 'N/A');
+        // Update display with proper capitalization for priority
+        if (fieldName === 'priority' && value) {
+            const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+            displayElement.textContent = prefix + (capitalizedValue || 'N/A');
+        } else {
+            displayElement.textContent = prefix + (value || 'N/A');
+        }
+
         displayElement.style.display = "block";
 
         // Hide the edit input
@@ -775,15 +801,14 @@ document.addEventListener("DOMContentLoaded", function() {
             if (taskElement) {
                 // Update border color based on new priority
                 const priorityColors = {
-                    high: '#ff5555',
-                    medium: '#ffa500',
-                    low: '#1e3a8a',
+                    High: '#ff5555',
+                    Medium: '#ffa500',
+                    Low: '#1e3a8a',
                     'N/A': '#1e3a8a'
                 };
                 taskElement.style.borderLeftColor = priorityColors[value] || '#1e3a8a';
             }
         }
-
 
         // Only save if value actually changed
         if (originalValue !== value) {
@@ -793,25 +818,36 @@ document.addEventListener("DOMContentLoaded", function() {
                 tasks[taskIndex][fieldName] = value;
                 saveTasks();
             }
-        }
 
-    }
-
-
-    if (originalValue !== value) {
-        // Find task in global array and update it
-        const taskIndex = tasks.findIndex(t => t.id === task.id);
-        if (taskIndex !== -1) {
-            tasks[taskIndex][fieldName] = value;
-            saveTasks();
-
-            // Re-render if list was changed
+            // If the list was changed, check if we need to reapply the current filter
             if (fieldName === 'list') {
-                renderTasks();
+                // Get the current view/filter from the page title
+                const currentView = document.querySelector(".today-title").textContent;
+
+                // If we're viewing a specific list
+                if (lists.includes(currentView)) {
+                    // If task was changed to a different list than the current view
+                    if (value !== currentView) {
+                        // Hide this task since it no longer belongs in the current list view
+                        const taskElement = displayElement.closest('li');
+                        if (taskElement) {
+                            // Add smooth transition
+                            taskElement.style.transition = "opacity 0.3s ease, height 0.3s ease, margin 0.3s ease";
+                            taskElement.style.opacity = "0";
+                            taskElement.style.height = "0";
+                            taskElement.style.margin = "0";
+                            taskElement.style.overflow = "hidden";
+
+                            // After transition completes, hide the element
+                            setTimeout(() => {
+                                taskElement.style.display = "none";
+                            }, 300);
+                        }
+                    }
+                }
             }
         }
     }
-
 
 
     function toggleTaskCompletion(task, taskRingElement, taskItemElement) {
