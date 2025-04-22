@@ -342,7 +342,12 @@ textarea.edit-input {
     margin-bottom: 10px;
     width: 100%;
 }/* Reset Styles */
-* {
+
+
+
+
+
+                    * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;

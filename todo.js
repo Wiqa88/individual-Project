@@ -784,22 +784,35 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }
 
+
         // Only save if value actually changed
         if (originalValue !== value) {
             // Find task in global array and update it
             const taskIndex = tasks.findIndex(t => t.id === task.id);
             if (taskIndex !== -1) {
                 tasks[taskIndex][fieldName] = value;
-                saveTasks()
+                saveTasks();
+            }
+        }
 
-                if (fieldName === 'list') {
-                    renderTasks(); // Re-render the task list if the list was changed
-                }
+    }
 
 
+    if (originalValue !== value) {
+        // Find task in global array and update it
+        const taskIndex = tasks.findIndex(t => t.id === task.id);
+        if (taskIndex !== -1) {
+            tasks[taskIndex][fieldName] = value;
+            saveTasks();
+
+            // Re-render if list was changed
+            if (fieldName === 'list') {
+                renderTasks();
             }
         }
     }
+
+
 
     function toggleTaskCompletion(task, taskRingElement, taskItemElement) {
         task.completed = !task.completed;
