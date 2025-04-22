@@ -677,9 +677,9 @@ document.addEventListener("DOMContentLoaded", function() {
         if (fieldName === 'priority') {
             // Use capitalized options for priority
             const capitalizedOptions = [
-                {value: 'low', text: 'Low'},
-                {value: 'medium', text: 'Medium'},
-                {value: 'high', text: 'High'}
+                {value: 'Low', text: 'Low'},
+                {value: 'Medium', text: 'Medium'},
+                {value: 'High', text: 'High'}
             ];
 
             capitalizedOptions.forEach(opt => {
