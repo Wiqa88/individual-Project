@@ -850,25 +850,34 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function toggleTaskCompletion(task, taskRingElement, taskItemElement) {
+        // Calculate the new state (opposite of current state)
+        const newCompletedState = !task.completed;
+
         // Add animation class
         taskRingElement.classList.add("completing");
 
-        // Listen for animation end and then update the completed state
+        // Immediately update the visual state if it's being completed
+        // This ensures the checkmark appears during the animation
+        if (newCompletedState) {
+            taskRingElement.classList.add("completed");
+        } else {
+            taskRingElement.classList.remove("completed");
+        }
+
+        // Listen for animation end to finalize changes
         taskRingElement.addEventListener("animationend", function handler() {
             // Remove the animation class and the event listener
             taskRingElement.classList.remove("completing");
             taskRingElement.removeEventListener("animationend", handler);
 
-            // Update the completed state
-            task.completed = !task.completed;
+            // Update the task's completed state in the data
+            task.completed = newCompletedState;
 
             // Update UI
-            if (task.completed) {
-                taskRingElement.classList.add("completed");
+            if (newCompletedState) {
                 // Add fading animation to the task item
                 taskItemElement.classList.add("task-item-fading");
             } else {
-                taskRingElement.classList.remove("completed");
                 taskItemElement.style.opacity = "1";
                 // Remove fading class if it exists
                 taskItemElement.classList.remove("task-item-fading");
@@ -882,6 +891,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }, { once: true });
     }
+
 
     function deleteTask(taskId, taskElement) {
         if (confirm("Are you sure you want to delete this task?")) {
