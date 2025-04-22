@@ -768,6 +768,22 @@ document.addEventListener("DOMContentLoaded", function() {
             editInput.style.display = "none";
         }
 
+        // Update border color if priority changed
+        if (fieldName === 'priority') {
+            // Find the task element (li)
+            const taskElement = displayElement.closest('li');
+            if (taskElement) {
+                // Update border color based on new priority
+                const priorityColors = {
+                    high: '#ff5555',
+                    medium: '#ffa500',
+                    low: '#1e3a8a',
+                    'N/A': '#1e3a8a'
+                };
+                taskElement.style.borderLeftColor = priorityColors[value] || '#1e3a8a';
+            }
+        }
+
         // Only save if value actually changed
         if (originalValue !== value) {
             // Find task in global array and update it
