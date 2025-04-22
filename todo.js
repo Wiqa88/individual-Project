@@ -1160,60 +1160,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 });
             });
 
-            // Create metadata container
-            const metadata = document.createElement('div');
-            metadata.className = 'subtask-metadata';
-
-            // Create date field only
-            const dateContainer = document.createElement('div');
-            dateContainer.className = 'subtask-date';
-
-            const dateLabel = document.createElement('span');
-            dateLabel.className = 'date-label';
-            dateLabel.textContent = 'Date: ';
-
-            const dateValue = document.createElement('span');
-            dateValue.className = 'date-value';
-            dateValue.textContent = subtask.date ? formatDate(subtask.date) : 'N/A';
-            dateValue.style.cursor = 'pointer';
-
-            dateValue.addEventListener('click', function (e) {
-                e.stopPropagation();
-
-                // Create date input
-                const dateInput = document.createElement('input');
-                dateInput.type = 'date';
-                dateInput.className = 'subtask-date-input';
-                dateInput.value = subtask.date ? convertToInputDateFormat(subtask.date) : '';
-
-                // Replace date text with input
-                dateValue.style.display = 'none';
-                dateContainer.appendChild(dateInput);
-                dateInput.focus();
-
-                // Handle blur
-                dateInput.addEventListener('blur', function () {
-                    saveSubtaskDate(subtask, dateInput, dateValue, task);
-                });
-
-                // Handle Enter and Escape
-                dateInput.addEventListener('keydown', function (e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        saveSubtaskDate(subtask, dateInput, dateValue, task);
-                    } else if (e.key === 'Escape') {
-                        e.preventDefault();
-                        dateValue.style.display = 'inline';
-                        dateInput.remove();
-                    }
-                });
-            });
-
-            dateContainer.appendChild(dateLabel);
-            dateContainer.appendChild(dateValue);
-
-            metadata.appendChild(dateContainer);
-
             // Create delete button
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'delete-subtask';
@@ -1241,11 +1187,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 }, 300);
             });
 
-            // Assemble the subtask item
+            // Assemble the subtask item (WITHOUT metadata)
             editable.appendChild(displayText);
             subtaskItem.appendChild(checkbox);
             subtaskItem.appendChild(editable);
-            subtaskItem.appendChild(metadata); // Add the metadata
             subtaskItem.appendChild(deleteBtn);
             subtasksContainer.appendChild(subtaskItem);
         });
@@ -1253,6 +1198,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // Add to the task content
         taskContent.appendChild(subtasksContainer);
     }
+
 
     // ----------------------
     // List Management
@@ -1531,6 +1477,7 @@ document.addEventListener("DOMContentLoaded", function() {
             taskList.appendChild(taskItem);
         });
     }
+    
 
     function loadLists() {
         const savedLists = localStorage.getItem("custom-lists");
