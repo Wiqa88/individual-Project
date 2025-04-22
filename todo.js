@@ -792,8 +792,31 @@ document.addEventListener("DOMContentLoaded", function() {
                 tasks[taskIndex][fieldName] = value;
                 saveTasks();
             }
+
+            // If the list was changed, check if we need to reapply the current filter
+            if (fieldName === 'list') {
+                // Get the current view/filter from the page title
+                const currentView = document.querySelector(".today-title").textContent;
+
+                // If we're viewing a specific list
+                if (lists.includes(currentView)) {
+                    // If task was changed to a different list than the current view
+                    if (value !== currentView) {
+                        // Hide this task since it no longer belongs in the current list view
+                        const taskElement = displayElement.closest('li');
+                        if (taskElement) {
+
+                            // After transition completes, hide the element
+                            setTimeout(() => {
+                                taskElement.style.display = "none";
+                            }, 300);
+                        }
+                    }
+                }
+            }
         }
     }
+
 
     function toggleTaskCompletion(task, taskRingElement, taskItemElement) {
         task.completed = !task.completed;
