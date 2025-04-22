@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const taskCreationHeader = taskCreationBox.querySelector("h3");
 
         // Click on header to toggle box
-        taskCreationHeader.addEventListener("click", function() {
+        taskCreationHeader.addEventListener("click", function () {
             taskCreationBox.classList.toggle("expanded");
             if (taskCreationBox.classList.contains("expanded")) {
                 taskTitle.focus();
@@ -78,19 +78,19 @@ document.addEventListener("DOMContentLoaded", function() {
         });
 
         // Focus on title expands the box
-        taskTitle.addEventListener("focus", function() {
+        taskTitle.addEventListener("focus", function () {
             taskCreationBox.classList.add("expanded");
         });
 
         // Clicking in task box keeps it expanded
-        taskCreationBox.addEventListener("click", function(e) {
+        taskCreationBox.addEventListener("click", function (e) {
             if (e.target !== taskCreationHeader) {
                 taskCreationBox.classList.add("expanded");
             }
         });
 
         // Click outside collapses box if title is empty
-        document.addEventListener("click", function(e) {
+        document.addEventListener("click", function (e) {
             if (!taskCreationBox.contains(e.target) && taskTitle.value.trim() === '') {
                 taskCreationBox.classList.remove("expanded");
             }
@@ -100,7 +100,7 @@ document.addEventListener("DOMContentLoaded", function() {
         addTaskButton.addEventListener("click", addTask);
 
         // Cancel task button click handler
-        cancelTaskButton.addEventListener("click", function() {
+        cancelTaskButton.addEventListener("click", function () {
             // Reset form
             clearTaskForm();
             // Collapse box
@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", function() {
         taskDescription.addEventListener('input', () => autoExpand(taskDescription));
 
         // Allow pressing Enter in task title to add task or expand box
-        taskTitle.addEventListener('keypress', function(e) {
+        taskTitle.addEventListener('keypress', function (e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 if (taskCreationBox.classList.contains("expanded")) {
@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
 
         // Format date inputs on change (just for feedback)
-        dueDate.addEventListener('change', function() {
+        dueDate.addEventListener('change', function () {
             const dateValue = this.value;
             if (dateValue) {
                 const formattedDate = formatDate(dateValue);
@@ -132,7 +132,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
 
-        reminder.addEventListener('change', function() {
+        reminder.addEventListener('change', function () {
             const dateValue = this.value;
             if (dateValue) {
                 const formattedDate = formatDate(dateValue);
@@ -143,7 +143,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function setupSortingEvents() {
         // Toggle sort menu visibility when sort button is clicked
-        sortButton.addEventListener("click", function(e) {
+        sortButton.addEventListener("click", function (e) {
             e.stopPropagation();
 
             // Position the menu below the sort button
@@ -155,18 +155,18 @@ document.addEventListener("DOMContentLoaded", function() {
         });
 
         // Hide sort menu when clicking outside
-        document.addEventListener("click", function() {
+        document.addEventListener("click", function () {
             sortMenu.classList.remove("visible");
         });
 
         // Prevent menu from closing when clicking inside it
-        sortMenu.addEventListener("click", function(e) {
+        sortMenu.addEventListener("click", function (e) {
             e.stopPropagation();
         });
 
         // Sorting functionality
         document.querySelectorAll(".sort-option").forEach(option => {
-            option.addEventListener("click", function() {
+            option.addEventListener("click", function () {
                 const sortType = this.dataset.sort;
 
                 // Mark active sort option
@@ -191,7 +191,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function setupNavigationEvents() {
         // Show all tasks when "Today" is clicked
-        document.querySelector(".menu a:nth-child(3)").addEventListener("click", function() {
+        document.querySelector(".menu a:nth-child(3)").addEventListener("click", function () {
             const taskItems = document.querySelectorAll(".task-item");
             taskItems.forEach(taskItem => {
                 taskItem.style.display = "flex";
@@ -277,7 +277,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // Task completion ring
         const taskRing = document.createElement("div");
         taskRing.className = task.completed ? "task-ring completed" : "task-ring";
-        taskRing.addEventListener("click", function() {
+        taskRing.addEventListener("click", function () {
             toggleTaskCompletion(task, taskRing, taskItem);
         });
 
@@ -318,7 +318,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const subtaskButton = document.createElement("button");
         subtaskButton.className = "subtask-button";
         subtaskButton.innerHTML = '<i class="fas fa-plus"></i> Add Subtask'; // Plus icon
-        subtaskButton.addEventListener("click", function(e) {
+        subtaskButton.addEventListener("click", function (e) {
             e.stopPropagation(); // Prevent event bubbling
 
             // Check if there's already a subtasks container
@@ -350,7 +350,7 @@ document.addEventListener("DOMContentLoaded", function() {
             subtaskInput.placeholder = 'Enter subtask...';
             subtaskInput.style.display = 'block';
 
-            // Create the subtask input row for date and reminder
+            // Create the subtask input row for date
             const subtaskInputRow = document.createElement('div');
             subtaskInputRow.className = 'subtask-input-row';
 
@@ -359,24 +359,10 @@ document.addEventListener("DOMContentLoaded", function() {
             subtaskDateInput.type = 'text';
             subtaskDateInput.className = 'subtask-date-field';
             subtaskDateInput.placeholder = 'Date';
-            subtaskDateInput.addEventListener('focus', function() {
+            subtaskDateInput.addEventListener('focus', function () {
                 this.type = 'date';
             });
-            subtaskDateInput.addEventListener('blur', function() {
-                if (!this.value) {
-                    this.type = 'text';
-                }
-            });
-
-            // Create reminder input
-            const subtaskReminderInput = document.createElement('input');
-            subtaskReminderInput.type = 'text';
-            subtaskReminderInput.className = 'subtask-reminder-field';
-            subtaskReminderInput.placeholder = 'Set Reminder';
-            subtaskReminderInput.addEventListener('focus', function() {
-                this.type = 'date';
-            });
-            subtaskReminderInput.addEventListener('blur', function() {
+            subtaskDateInput.addEventListener('blur', function () {
                 if (!this.value) {
                     this.type = 'text';
                 }
@@ -384,7 +370,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
             // Add inputs to the row
             subtaskInputRow.appendChild(subtaskDateInput);
-            subtaskInputRow.appendChild(subtaskReminderInput);
 
             // Add the subtask creation elements to DOM
             subtaskItem.appendChild(checkbox);
@@ -417,7 +402,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }, 10);
 
             // Cancel button handler
-            cancelSubtaskBtn.addEventListener('click', function() {
+            cancelSubtaskBtn.addEventListener('click', function () {
                 subtaskInput.classList.remove('show');
                 setTimeout(() => {
                     subtaskItem.remove();
@@ -429,19 +414,18 @@ document.addEventListener("DOMContentLoaded", function() {
             });
 
             // Add button handler
-            addSubtaskBtn.addEventListener('click', function() {
+            addSubtaskBtn.addEventListener('click', function () {
                 saveNewSubtask(
                     task,
                     subtaskInput,
                     subtaskItem,
                     subtasksContainer,
-                    subtaskDateInput.value,
-                    subtaskReminderInput.value
+                    subtaskDateInput.value
                 );
             });
 
             // Save on Enter
-            subtaskInput.addEventListener('keydown', function(e) {
+            subtaskInput.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     saveNewSubtask(
@@ -449,8 +433,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         subtaskInput,
                         subtaskItem,
                         subtasksContainer,
-                        subtaskDateInput.value,
-                        subtaskReminderInput.value
+                        subtaskDateInput.value
                     );
                 } else if (e.key === 'Escape') {
                     subtaskInput.classList.remove('show');
@@ -469,7 +452,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "×";
         deleteButton.className = "delete-task";
-        deleteButton.addEventListener("click", function() {
+        deleteButton.addEventListener("click", function () {
             deleteTask(task.id, taskItem);
         });
 
@@ -523,7 +506,7 @@ document.addEventListener("DOMContentLoaded", function() {
         editInput.style.display = "none";
 
         // Set up clicking functionality
-        displayText.addEventListener("click", function(e) {
+        displayText.addEventListener("click", function (e) {
             e.stopPropagation(); // Stop propagation to prevent document click handler
 
             // Enter edit mode
@@ -573,7 +556,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
 
         // Handle saving on Enter key or Escape
-        editInput.addEventListener("keydown", function(e) {
+        editInput.addEventListener("keydown", function (e) {
             if (e.key === "Enter" && !e.shiftKey && !isTextArea) {
                 e.preventDefault();
                 saveFieldEdit(fieldName, this.value, task, displayText, prefix);
@@ -585,7 +568,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 }, isTextArea ? 300 : 0);
 
                 // Remove any click away handlers
-                document.removeEventListener("click", function() {});
+                document.removeEventListener("click", function () {
+                });
             } else if (e.key === "Escape") {
                 // Cancel edit and restore original value
                 e.preventDefault();
@@ -598,7 +582,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 }, isTextArea ? 300 : 0);
 
                 // Remove any click away handlers
-                document.removeEventListener("click", function() {});
+                document.removeEventListener("click", function () {
+                });
             }
         });
 
@@ -638,7 +623,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
 
         // Set up editing functionality
-        displayText.addEventListener("click", function(e) {
+        displayText.addEventListener("click", function (e) {
             e.stopPropagation(); // Stop propagation to prevent document click handler
 
             // Enter edit mode
@@ -664,14 +649,15 @@ document.addEventListener("DOMContentLoaded", function() {
         });
 
         // Handle saving on Enter key or Escape
-        selectInput.addEventListener("keydown", function(e) {
+        selectInput.addEventListener("keydown", function (e) {
             if (e.key === "Enter") {
                 e.preventDefault();
                 const selectedValue = this.options[this.selectedIndex].value;
                 saveFieldEdit(fieldName, selectedValue, task, displayText, prefix);
 
                 // Remove any click away handlers
-                document.removeEventListener("click", function() {});
+                document.removeEventListener("click", function () {
+                });
             } else if (e.key === "Escape") {
                 // Cancel edit
                 e.preventDefault();
@@ -679,7 +665,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 selectInput.style.display = "none";
 
                 // Remove any click away handlers
-                document.removeEventListener("click", function() {});
+                document.removeEventListener("click", function () {
+                });
             }
         });
 
@@ -786,7 +773,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 const priorityB = b.querySelector("[data-field='priority'] .display-text").textContent.replace("Priority: ", "");
 
                 // Define priority order
-                const priorityOrder = { "high": 1, "medium": 2, "low": 3, "N/A": 4 };
+                const priorityOrder = {"high": 1, "medium": 2, "low": 3, "N/A": 4};
 
                 return priorityOrder[priorityA] - priorityOrder[priorityB];
 
@@ -807,17 +794,16 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    function saveNewSubtask(task, subtaskInput, subtaskItem, subtasksContainer, dateValue, reminderValue) {
+    function saveNewSubtask(task, subtaskInput, subtaskItem, subtasksContainer, dateValue) {
         const subtaskText = subtaskInput.value.trim();
 
         if (subtaskText) {
-            // Create a new subtask object with date and reminder fields
+            // Create a new subtask object with date field only
             const newSubtask = {
                 id: Date.now(), // Unique ID
                 text: subtaskText,
                 completed: false,
-                date: dateValue || null,     // Add date field
-                reminder: reminderValue || null  // Add reminder field
+                date: dateValue || null // Only keep date field
             };
 
             // Initialize subtasks array if it doesn't exist
@@ -839,7 +825,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.className = 'subtask-checkbox';
-                checkbox.addEventListener('change', function() {
+                checkbox.addEventListener('change', function () {
                     newSubtask.completed = this.checked;
 
                     // Update subtask appearance
@@ -865,7 +851,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 displayText.textContent = newSubtask.text;
 
                 // Make display text clickable for editing
-                displayText.addEventListener('click', function(e) {
+                displayText.addEventListener('click', function (e) {
                     e.stopPropagation(); // Stop propagation
 
                     // Create edit input
@@ -901,7 +887,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     }, 10);
 
                     // Save on Enter or cancel on Escape
-                    editInput.addEventListener('keydown', function(e) {
+                    editInput.addEventListener('keydown', function (e) {
                         if (e.key === 'Enter' && !e.shiftKey) {
                             e.preventDefault();
                             saveSubtaskEdit(newSubtask, editInput, displayText, task);
@@ -935,7 +921,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 dateValue.textContent = newSubtask.date ? formatDate(newSubtask.date) : 'N/A';
                 dateValue.style.cursor = 'pointer';
 
-                dateValue.addEventListener('click', function(e) {
+                dateValue.addEventListener('click', function (e) {
                     e.stopPropagation();
 
                     // Create date input
@@ -950,12 +936,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     dateInput.focus();
 
                     // Handle blur
-                    dateInput.addEventListener('blur', function() {
+                    dateInput.addEventListener('blur', function () {
                         saveSubtaskDate(newSubtask, dateInput, dateValue, task);
                     });
 
                     // Handle Enter and Escape
-                    dateInput.addEventListener('keydown', function(e) {
+                    dateInput.addEventListener('keydown', function (e) {
                         if (e.key === 'Enter') {
                             e.preventDefault();
                             saveSubtaskDate(newSubtask, dateInput, dateValue, task);
@@ -970,62 +956,13 @@ document.addEventListener("DOMContentLoaded", function() {
                 dateContainer.appendChild(dateLabel);
                 dateContainer.appendChild(dateValue);
 
-                // Create reminder field
-                const reminderContainer = document.createElement('div');
-                reminderContainer.className = 'subtask-reminder';
-
-                const reminderLabel = document.createElement('span');
-                reminderLabel.className = 'reminder-label';
-                reminderLabel.textContent = 'Reminder: ';
-
-                const reminderValue = document.createElement('span');
-                reminderValue.className = 'reminder-value';
-                reminderValue.textContent = newSubtask.reminder ? formatDate(newSubtask.reminder) : 'N/A';
-                reminderValue.style.cursor = 'pointer';
-
-                reminderValue.addEventListener('click', function(e) {
-                    e.stopPropagation();
-
-                    // Create reminder input
-                    const reminderInput = document.createElement('input');
-                    reminderInput.type = 'date';
-                    reminderInput.className = 'subtask-reminder-input';
-                    reminderInput.value = newSubtask.reminder ? convertToInputDateFormat(newSubtask.reminder) : '';
-
-                    // Replace reminder text with input
-                    reminderValue.style.display = 'none';
-                    reminderContainer.appendChild(reminderInput);
-                    reminderInput.focus();
-
-                    // Handle blur
-                    reminderInput.addEventListener('blur', function() {
-                        saveSubtaskReminder(newSubtask, reminderInput, reminderValue, task);
-                    });
-
-                    // Handle Enter and Escape
-                    reminderInput.addEventListener('keydown', function(e) {
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            saveSubtaskReminder(newSubtask, reminderInput, reminderValue, task);
-                        } else if (e.key === 'Escape') {
-                            e.preventDefault();
-                            reminderValue.style.display = 'inline';
-                            reminderInput.remove();
-                        }
-                    });
-                });
-
-                reminderContainer.appendChild(reminderLabel);
-                reminderContainer.appendChild(reminderValue);
-
                 metadata.appendChild(dateContainer);
-                metadata.appendChild(reminderContainer);
 
                 // Create delete button
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'delete-subtask';
                 deleteBtn.innerHTML = '×';
-                deleteBtn.addEventListener('click', function() {
+                deleteBtn.addEventListener('click', function () {
                     // Remove from task's subtasks array
                     task.subtasks = task.subtasks.filter(st => st.id !== newSubtask.id);
 
@@ -1072,7 +1009,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // Add functions to save date and reminder for subtasks
+    // Add function to save date for subtasks
     function saveSubtaskDate(subtask, dateInput, dateValue, task) {
         const newDate = dateInput.value; // In yyyy-mm-dd format
 
@@ -1090,24 +1027,36 @@ document.addEventListener("DOMContentLoaded", function() {
         saveTask(task);
     }
 
-    function saveSubtaskReminder(subtask, reminderInput, reminderValue, task) {
-        const newReminder = reminderInput.value; // In yyyy-mm-dd format
+    // Render subtasks with date field only
+    function saveSubtaskEdit(subtask, editInput, displayText, task) {
+        const newText = editInput.value.trim();
 
-        // Update subtask
-        subtask.reminder = newReminder || null;
+        if (newText) {
+            // Update subtask
+            subtask.text = newText;
+            displayText.textContent = newText;
 
-        // Update display
-        reminderValue.textContent = subtask.reminder ? formatDate(subtask.reminder) : 'N/A';
-        reminderValue.style.display = 'inline';
+            // Save changes
+            saveTask(task);
+        }
 
-        // Remove input
-        reminderInput.remove();
-
-        // Save changes
-        saveTask(task);
+        // Hide input with animation
+        editInput.classList.remove('show');
+        setTimeout(() => {
+            displayText.style.display = 'block';
+            editInput.remove();
+        }, 300);
     }
 
-    // Render subtasks with date and reminder fields
+    function saveTask(task) {
+        // Find task in global array and update it
+        const taskIndex = tasks.findIndex(t => t.id === task.id);
+        if (taskIndex !== -1) {
+            tasks[taskIndex] = task;
+            saveTasks();
+        }
+    }
+
     function renderSubtasks(task, taskContent) {
         // Skip if no subtasks
         if (!task.subtasks || task.subtasks.length === 0) return;
@@ -1126,7 +1075,7 @@ document.addEventListener("DOMContentLoaded", function() {
             checkbox.type = 'checkbox';
             checkbox.className = 'subtask-checkbox';
             checkbox.checked = subtask.completed;
-            checkbox.addEventListener('change', function() {
+            checkbox.addEventListener('change', function () {
                 subtask.completed = this.checked;
 
                 // Update subtask appearance
@@ -1158,7 +1107,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
 
             // Make display text clickable for editing
-            displayText.addEventListener('click', function(e) {
+            displayText.addEventListener('click', function (e) {
                 e.stopPropagation(); // Stop propagation
 
                 // Create edit input
@@ -1194,7 +1143,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 }, 10);
 
                 // Save on Enter or cancel on Escape
-                editInput.addEventListener('keydown', function(e) {
+                editInput.addEventListener('keydown', function (e) {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
                         saveSubtaskEdit(subtask, editInput, displayText, task);
@@ -1215,7 +1164,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const metadata = document.createElement('div');
             metadata.className = 'subtask-metadata';
 
-            // Create date field
+            // Create date field only
             const dateContainer = document.createElement('div');
             dateContainer.className = 'subtask-date';
 
@@ -1228,7 +1177,7 @@ document.addEventListener("DOMContentLoaded", function() {
             dateValue.textContent = subtask.date ? formatDate(subtask.date) : 'N/A';
             dateValue.style.cursor = 'pointer';
 
-            dateValue.addEventListener('click', function(e) {
+            dateValue.addEventListener('click', function (e) {
                 e.stopPropagation();
 
                 // Create date input
@@ -1243,12 +1192,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 dateInput.focus();
 
                 // Handle blur
-                dateInput.addEventListener('blur', function() {
+                dateInput.addEventListener('blur', function () {
                     saveSubtaskDate(subtask, dateInput, dateValue, task);
                 });
 
                 // Handle Enter and Escape
-                dateInput.addEventListener('keydown', function(e) {
+                dateInput.addEventListener('keydown', function (e) {
                     if (e.key === 'Enter') {
                         e.preventDefault();
                         saveSubtaskDate(subtask, dateInput, dateValue, task);
@@ -1263,62 +1212,13 @@ document.addEventListener("DOMContentLoaded", function() {
             dateContainer.appendChild(dateLabel);
             dateContainer.appendChild(dateValue);
 
-            // Create reminder field
-            const reminderContainer = document.createElement('div');
-            reminderContainer.className = 'subtask-reminder';
-
-            const reminderLabel = document.createElement('span');
-            reminderLabel.className = 'reminder-label';
-            reminderLabel.textContent = 'Reminder: ';
-
-            const reminderValue = document.createElement('span');
-            reminderValue.className = 'reminder-value';
-            reminderValue.textContent = subtask.reminder ? formatDate(subtask.reminder) : 'N/A';
-            reminderValue.style.cursor = 'pointer';
-
-            reminderValue.addEventListener('click', function(e) {
-                e.stopPropagation();
-
-                // Create reminder input
-                const reminderInput = document.createElement('input');
-                reminderInput.type = 'date';
-                reminderInput.className = 'subtask-reminder-input';
-                reminderInput.value = subtask.reminder ? convertToInputDateFormat(subtask.reminder) : '';
-
-                // Replace reminder text with input
-                reminderValue.style.display = 'none';
-                reminderContainer.appendChild(reminderInput);
-                reminderInput.focus();
-
-                // Handle blur
-                reminderInput.addEventListener('blur', function() {
-                    saveSubtaskReminder(subtask, reminderInput, reminderValue, task);
-                });
-
-                // Handle Enter and Escape
-                reminderInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        saveSubtaskReminder(subtask, reminderInput, reminderValue, task);
-                    } else if (e.key === 'Escape') {
-                        e.preventDefault();
-                        reminderValue.style.display = 'inline';
-                        reminderInput.remove();
-                    }
-                });
-            });
-
-            reminderContainer.appendChild(reminderLabel);
-            reminderContainer.appendChild(reminderValue);
-
             metadata.appendChild(dateContainer);
-            metadata.appendChild(reminderContainer);
 
             // Create delete button
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'delete-subtask';
             deleteBtn.innerHTML = '×';
-            deleteBtn.addEventListener('click', function() {
+            deleteBtn.addEventListener('click', function () {
                 // Remove from task's subtasks array
                 task.subtasks = task.subtasks.filter(st => st.id !== subtask.id);
 
@@ -1352,35 +1252,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Add to the task content
         taskContent.appendChild(subtasksContainer);
-    }
-
-    function saveSubtaskEdit(subtask, editInput, displayText, task) {
-        const newText = editInput.value.trim();
-
-        if (newText) {
-            // Update subtask
-            subtask.text = newText;
-            displayText.textContent = newText;
-
-            // Save changes
-            saveTask(task);
-        }
-
-        // Hide input with animation
-        editInput.classList.remove('show');
-        setTimeout(() => {
-            displayText.style.display = 'block';
-            editInput.remove();
-        }, 300);
-    }
-
-    function saveTask(task) {
-        // Find task in global array and update it
-        const taskIndex = tasks.findIndex(t => t.id === task.id);
-        if (taskIndex !== -1) {
-            tasks[taskIndex] = task;
-            saveTasks();
-        }
     }
 
     // ----------------------
@@ -1418,7 +1289,7 @@ document.addEventListener("DOMContentLoaded", function() {
             listName_el.className = "list-name";
             listName_el.dataset.index = index;
             listName_el.textContent = listName;
-            listName_el.addEventListener('click', function() {
+            listName_el.addEventListener('click', function () {
                 filterTasksByList(listName);
             });
 
@@ -1431,7 +1302,7 @@ document.addEventListener("DOMContentLoaded", function() {
             editBtn.className = "list-edit-btn";
             editBtn.dataset.index = index;
             editBtn.textContent = "Edit";
-            editBtn.addEventListener('click', function() {
+            editBtn.addEventListener('click', function () {
                 editList(index, listItem);
             });
 
@@ -1440,7 +1311,7 @@ document.addEventListener("DOMContentLoaded", function() {
             deleteBtn.className = "list-delete-btn";
             deleteBtn.dataset.index = index;
             deleteBtn.textContent = "Delete";
-            deleteBtn.addEventListener('click', function() {
+            deleteBtn.addEventListener('click', function () {
                 deleteList(index, listName);
             });
 
@@ -1466,7 +1337,7 @@ document.addEventListener("DOMContentLoaded", function() {
         editInput.focus();
 
         // Setup save on enter or blur
-        editInput.addEventListener('keydown', function(e) {
+        editInput.addEventListener('keydown', function (e) {
             if (e.key === 'Enter') {
                 saveListEdit(index, editInput.value, listItem, listNameEl, editInput);
             } else if (e.key === 'Escape') {
@@ -1474,7 +1345,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
 
-        editInput.addEventListener('blur', function() {
+        editInput.addEventListener('blur', function () {
             saveListEdit(index, editInput.value, listItem, listNameEl, editInput);
         });
     }
@@ -1650,7 +1521,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
 
             // Sort by priority
-            const priorityOrder = { high: 0, medium: 1, low: 2, 'N/A': 3 };
+            const priorityOrder = {high: 0, medium: 1, low: 2, 'N/A': 3};
             return priorityOrder[a.priority] - priorityOrder[b.priority];
         });
 
@@ -1740,4 +1611,4 @@ document.addEventListener("DOMContentLoaded", function() {
         textarea.style.height = 'auto';
         textarea.style.height = (textarea.scrollHeight) + 'px';
     };
-});
+}); // This closing brace was missing
