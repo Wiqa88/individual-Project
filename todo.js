@@ -1008,6 +1008,7 @@ document.addEventListener("DOMContentLoaded", function() {
         return containerDiv;
     }
 
+// This function needs to be updated to handle immediate date formatting
     function saveFieldEdit(fieldName, value, task, displayElement, prefix = '') {
         // Get the original value
         const originalValue = task[fieldName];
@@ -1029,8 +1030,13 @@ document.addEventListener("DOMContentLoaded", function() {
         // Update task object
         task[fieldName] = value;
 
-        // Update display with proper capitalization for priority
-        if (fieldName === 'priority' && value) {
+        // Format date fields for display
+        if ((fieldName === 'date' || fieldName === 'reminder') && value) {
+            // Format the date for display (convert from yyyy-mm-dd to dd/mm/yyyy)
+            const formattedDate = formatDate(value);
+            displayElement.textContent = prefix + formattedDate;
+        } else if (fieldName === 'priority' && value) {
+            // Update display with proper capitalization for priority
             const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
             displayElement.textContent = prefix + (capitalizedValue || 'N/A');
         } else {
@@ -1098,6 +1104,206 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             }
         }
+    }
+
+// Update this function to ensure date is formatted correctly when a task is added
+    function addTask() {
+        const titleValue = taskTitle.value.trim();
+
+        if (titleValue) {
+            const newTask = {
+                id: Date.now(), // Unique ID using timestamp
+                title: titleValue,
+                description: taskDescription.value.trim(),
+                date: dueDate.value || null,
+                reminder: reminder.value || null,
+                priority: priority.value !== 'priority' ? priority.value : 'medium',
+                list: listSelect.value !== 'default' ? listSelect.value : 'N/A',
+                completed: false,
+                createdAt: new Date().toISOString(),
+                subtasks: [] // Initialize empty subtasks array
+            };
+
+            // Add task to global array
+            tasks.push(newTask);
+
+            // Create task element
+            const taskItem = createTaskElement(newTask);
+            taskList.appendChild(taskItem);
+
+            // Remove no tasks message if it exists
+            removeNoTasksMessage();
+
+            // Save tasks to localStorage
+            saveTasks();
+
+            // Reset form
+            clearTaskForm();
+
+            // Collapse creation box
+            taskCreationBox.classList.remove("expanded");
+        } else {
+            alert("Please enter a task title");
+        }
+    }
+
+// Update formatDate function to better handle different date formats
+    function formatDate(dateString) {
+        if (!dateString) return 'N/A';
+
+        // Check if the date is already in dd/mm/yyyy format
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+            return dateString;
+        }
+
+        // Convert from yyyy-mm-dd to dd/mm/yyyy
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) {
+                // Try parsing as yyyy-mm-dd if direct Date parsing fails
+                const parts = dateString.split('-');
+                if (parts.length === 3) {
+                    return `${parts[2].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[0]}`;
+                }
+                return 'N/A';
+            }
+
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+
+            return `${day}/${month}/${year}`;
+        } catch (e) {
+            // If any error occurs, return N/A
+            return 'N/A';
+        }
+    }
+
+// Ensure dates are formatted correctly when tasks are first displayed
+    function createTaskElement(task) {
+        const taskItem = document.createElement("li");
+
+        // Set left border color based on priority
+        const priorityColors = {
+            high: '#ff5555',
+            medium: '#ffa500',
+            low: '#1e3a8a',
+            'N/A': '#1e3a8a'
+        };
+        taskItem.style.borderLeftColor = priorityColors[task.priority] || '#1e3a8a';
+
+        // Add opacity if task is completed
+        if (task.completed) {
+            taskItem.style.opacity = '0.6';
+        }
+
+        // Task item inner structure
+        const taskItemInner = document.createElement("div");
+        taskItemInner.className = "task-item";
+
+        // Task completion ring
+        const taskRing = document.createElement("div");
+        taskRing.className = task.completed ? "task-ring completed" : "task-ring";
+        taskRing.addEventListener("click", function () {
+            toggleTaskCompletion(task, taskRing, taskItem);
+        });
+
+        // Task content container
+        const taskContent = document.createElement("div");
+        taskContent.style.width = "100%";
+
+        // Format dates for display - always format here to ensure consistent display
+        const formattedDueDate = formatDate(task.date);
+        const formattedReminderDate = formatDate(task.reminder);
+
+        // Title with inline editing
+        const titleDiv = createEditableField('title', task.title, 'task-title', task);
+
+        // Description with inline editing
+        const descDiv = createEditableField('description', task.description, 'task-desc', task);
+
+        // Metadata container
+        const metadata = document.createElement("div");
+        metadata.classList.add("task-metadata");
+
+        // Date with inline editing - use formatted date
+        const dateDiv = createEditableField('date', formattedDueDate, '', task, 'Date: ');
+
+        // Reminder with inline editing - use formatted date
+        const reminderDiv = createEditableField('reminder', formattedReminderDate, '', task, 'Reminder: ');
+
+        // Priority with inline editing (select dropdown)
+        const priorityDiv = createEditableSelectField('priority', task.priority, task, ['low', 'medium', 'high'], 'Priority: ');
+
+        // List with inline editing (select dropdown)
+        const listDiv = createEditableSelectField('list', task.list, task, ['N/A', ...lists], 'List: ');
+
+        // Store task ID in the DOM element for reference
+        taskItem.dataset.id = task.id;
+
+        // Create new subtask button
+        const subtaskButton = createAddSubtaskButton(task, taskContent);
+
+        // Delete button
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "×";
+        deleteButton.className = "delete-task";
+        deleteButton.addEventListener("click", function () {
+            deleteTask(task.id, taskItem);
+        });
+
+        // Assemble the task item
+        metadata.append(dateDiv, reminderDiv, priorityDiv, listDiv);
+        taskContent.append(titleDiv, descDiv, metadata, subtaskButton);
+
+        // Render existing subtasks if any
+        renderSubtasks(task, taskContent);
+
+        taskItemInner.append(taskRing, taskContent);
+        taskItem.append(taskItemInner, deleteButton);
+
+        return taskItem;
+    }
+
+// Update convertToInputDateFormat to better handle different date formats
+    function convertToInputDateFormat(dateString) {
+        if (!dateString || dateString === 'N/A') return '';
+
+        // If already in yyyy-mm-dd format
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+            return dateString;
+        }
+
+        // Convert from dd/mm/yyyy to yyyy-mm-dd
+        try {
+            const parts = dateString.split('/');
+            if (parts.length === 3) {
+                // Make sure we have year-month-day
+                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+
+            // If not in expected format, try parsing as a date
+            const date = new Date(dateString);
+            if (!isNaN(date.getTime())) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+        } catch (e) {
+            // If any error occurs, return empty string
+            console.error("Error converting date format:", e);
+        }
+
+        return '';
+    }
+
+// Fix formatDateForComparison to better handle date conversion
+    function formatDateForComparison(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
     function toggleTaskCompletion(task, taskRingElement, taskItemElement) {
