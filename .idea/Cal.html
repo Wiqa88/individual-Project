@@ -1,17 +1,14 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendar Integration</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="todo.css">
+    <title>Calendar</title>
     <link rel="stylesheet" href="Cal.css">
-    <!-- Google API client library -->
-    <script src="https://apis.google.com/js/api.js"></script>
-    <script src="https://accounts.google.com/gsi/client"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
 <div class="container">
     <div class="left-column">
@@ -19,7 +16,7 @@
             <nav>
                 <ul>
                     <li><a href="index.html"><img src="note.png" alt="To-Do"></a></li>
-                    <li><a href="Cal.html" class="active"><img src="calendar.png" alt="Calendar"></a></li>
+                    <li><a href="cal.html"><img src="calendar.png" alt="Calendar"></a></li>
                     <li><a href="#"><img src="clock.png" alt="Pomodoro"></a></li>
                     <li><a href="#"><img src="matrix.png" alt="Eisenhower Matrix"></a></li>
                     <li><a href="#"><img src="habits.png" alt="Habits"></a></li>
@@ -31,140 +28,82 @@
             <div class="menu">
                 <a href="#" id="add-event-link"><i class="fas fa-plus-circle"></i> Add Event</a>
                 <a href="#"><i class="fas fa-search"></i> Search</a>
-                <a href="#" id="today-view"><i class="fas fa-calendar-day"></i> Today</a>
-                <a href="#" id="week-view"><i class="fas fa-calendar-week"></i> Week View</a>
-                <a href="#" id="month-view"><i class="fas fa-calendar-alt"></i> Month View</a>
-                <a href="#" id="agenda-view"><i class="fas fa-list"></i> Agenda</a>
+                <a href="#" id="today-link"><i class="fas fa-calendar-day"></i> Today</a>
+                <a href="#" id="week-link"><i class="fas fa-calendar-week"></i> Week View</a>
+                <a href="#" id="month-link"><i class="fas fa-calendar-alt"></i> Month View</a>
+                <a href="#" id="agenda-link"><i class="fas fa-list-alt"></i> Agenda</a>
             </div>
 
             <div class="separator-line"></div>
 
             <div class="menu">
                 <div class="lists-header">
-                    <span>Calendars</span>
-                    <button id="add-calendar-btn" title="Add New Calendar"><i class="fas fa-plus"></i></button>
+                    <span>Lists</span>
+                    <button id="add-list-btn" title="Add New List"><i class="fas fa-plus"></i></button>
                 </div>
-                <div id="calendar-list-container">
-                    <!-- Calendars will be dynamically added here -->
+                <div id="lists-container">
+                    <!-- Lists will be dynamically added here -->
                 </div>
             </div>
 
             <div class="separator-line"></div>
 
-            <div class="menu" id="integration-section">
-                <div class="integration-header">
-                    <span>Google Calendar</span>
+            <div class="mini-calendar">
+                <div class="mini-calendar-header">
+                    <button id="prev-month-btn"><i class="fas fa-chevron-left"></i></button>
+                    <h3 id="mini-calendar-title">April 2025</h3>
+                    <button id="next-month-btn"><i class="fas fa-chevron-right"></i></button>
                 </div>
-                <div id="google-signin-button" class="google-signin-wrapper">
-                    <!-- Sign-in button will be placed here -->
+                <div class="mini-calendar-weekdays">
+                    <span>Su</span>
+                    <span>Mo</span>
+                    <span>Tu</span>
+                    <span>We</span>
+                    <span>Th</span>
+                    <span>Fr</span>
+                    <span>Sa</span>
                 </div>
-                <div id="google-calendar-status" class="status-info">
-                    Not connected
+                <div class="mini-calendar-days" id="mini-calendar-days">
+                    <!-- Days will be added dynamically -->
                 </div>
             </div>
         </div>
     </div>
 
     <main>
-        <h1 class="calendar-title">Calendar</h1>
-
-        <div class="calendar-controls">
+        <div class="calendar-header">
             <div class="calendar-navigation">
-                <button id="prev-btn" class="nav-btn"><i class="fas fa-chevron-left"></i></button>
-                <h2 id="current-period">April 2025</h2>
-                <button id="next-btn" class="nav-btn"><i class="fas fa-chevron-right"></i></button>
+                <button id="prev-period"><i class="fas fa-chevron-left"></i></button>
+                <h1 id="calendar-title">April 2025</h1>
+                <button id="next-period"><i class="fas fa-chevron-right"></i></button>
             </div>
-            <div class="view-controls">
-                <button class="view-btn" data-view="day">Day</button>
-                <button class="view-btn" data-view="week">Week</button>
-                <button class="view-btn active" data-view="month">Month</button>
-                <button class="view-btn" data-view="agenda">Agenda</button>
-            </div>
-        </div>
-
-        <!-- Event Creation Modal -->
-        <div id="event-modal" class="modal">
-            <div class="modal-content">
-                <span class="close-modal">&times;</span>
-                <h3>Create New Event</h3>
-                <form id="event-form">
-                    <div class="form-group">
-                        <label for="event-title">Title</label>
-                        <input type="text" id="event-title" required>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="event-start-date">Start Date</label>
-                            <input type="date" id="event-start-date" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="event-start-time">Start Time</label>
-                            <input type="time" id="event-start-time">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="event-end-date">End Date</label>
-                            <input type="date" id="event-end-date" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="event-end-time">End Time</label>
-                            <input type="time" id="event-end-time">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="event-description">Description</label>
-                        <textarea id="event-description" rows="3"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="event-location">Location</label>
-                        <input type="text" id="event-location">
-                    </div>
-                    <div class="form-group">
-                        <label for="event-calendar">Calendar</label>
-                        <select id="event-calendar">
-                            <option value="primary">Primary Calendar</option>
-                            <!-- Other calendars will be added dynamically -->
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="event-color">Color</label>
-                        <select id="event-color">
-                            <option value="#4285F4">Blue</option>
-                            <option value="#DB4437">Red</option>
-                            <option value="#F4B400">Yellow</option>
-                            <option value="#0F9D58">Green</option>
-                            <option value="#9C27B0">Purple</option>
-                        </select>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" id="cancel-event">Cancel</button>
-                        <button type="submit" id="save-event">Save</button>
-                    </div>
-                </form>
+            <div class="view-options">
+                <button class="view-option" data-view="day">Day</button>
+                <button class="view-option" data-view="week">Week</button>
+                <button class="view-option active" data-view="month">Month</button>
             </div>
         </div>
 
-        <!-- Calendar container -->
+        <!-- Calendar Views -->
         <div class="calendar-container">
-            <!-- Month View Grid -->
-            <div id="month-grid" class="calendar-view active">
-                <div class="calendar-header">
-                    <div>Sun</div>
-                    <div>Mon</div>
-                    <div>Tue</div>
-                    <div>Wed</div>
-                    <div>Thu</div>
-                    <div>Fri</div>
-                    <div>Sat</div>
+            <!-- Month View -->
+            <div id="month-view" class="calendar-view active">
+                <div class="calendar-weekdays">
+                    <div>Sunday</div>
+                    <div>Monday</div>
+                    <div>Tuesday</div>
+                    <div>Wednesday</div>
+                    <div>Thursday</div>
+                    <div>Friday</div>
+                    <div>Saturday</div>
                 </div>
-                <div class="calendar-grid" id="calendar-days">
-                    <!-- Calendar days will be generated here -->
+                <div class="calendar-grid" id="month-grid">
+                    <!-- Calendar days will be added dynamically -->
                 </div>
             </div>
 
             <!-- Week View -->
-            <div id="week-grid" class="calendar-view">
+            <div id="week-view" class="calendar-view">
                 <div class="time-labels">
                     <div class="time-label">12 AM</div>
                     <div class="time-label">1 AM</div>
@@ -192,17 +131,17 @@
                     <div class="time-label">11 PM</div>
                 </div>
                 <div class="week-container">
-                    <div class="week-header" id="week-days">
-                        <!-- Week day headers will be generated here -->
+                    <div class="week-header" id="week-header">
+                        <!-- Day headers will be added dynamically -->
                     </div>
-                    <div class="week-grid" id="week-slots">
-                        <!-- Week time slots will be generated here -->
+                    <div class="week-grid" id="week-grid">
+                        <!-- Week grid will be added dynamically -->
                     </div>
                 </div>
             </div>
 
             <!-- Day View -->
-            <div id="day-grid" class="calendar-view">
+            <div id="day-view" class="calendar-view">
                 <div class="time-labels">
                     <div class="time-label">12 AM</div>
                     <div class="time-label">1 AM</div>
@@ -230,57 +169,123 @@
                     <div class="time-label">11 PM</div>
                 </div>
                 <div class="day-container">
-                    <div class="day-header" id="current-day">
-                        <!-- Current day will be displayed here -->
+                    <div class="day-header" id="day-header">
+                        <!-- Day header will be added dynamically -->
                     </div>
-                    <div class="day-grid" id="day-slots">
-                        <!-- Day time slots will be generated here -->
+                    <div class="day-grid" id="day-grid">
+                        <!-- Day grid will be added dynamically -->
                     </div>
-                </div>
-            </div>
-
-            <!-- Agenda View -->
-            <div id="agenda-grid" class="calendar-view">
-                <div id="agenda-events" class="agenda-list">
-                    <!-- Agenda items will be generated here -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Event Details Modal -->
-        <div id="event-details-modal" class="modal">
-            <div class="modal-content">
-                <span class="close-details-modal">&times;</span>
-                <div class="event-details-header">
-                    <h3 id="event-details-title">Event Title</h3>
-                </div>
-                <div class="event-details-content">
-                    <div class="event-detail" id="event-details-time">
-                        <i class="fas fa-clock"></i>
-                        <span></span>
-                    </div>
-                    <div class="event-detail" id="event-details-location">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span></span>
-                    </div>
-                    <div class="event-detail" id="event-details-calendar">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span></span>
-                    </div>
-                    <div class="event-detail" id="event-details-description">
-                        <i class="fas fa-align-left"></i>
-                        <div></div>
-                    </div>
-                </div>
-                <div class="event-details-actions">
-                    <button id="edit-event-btn">Edit</button>
-                    <button id="delete-event-btn">Delete</button>
                 </div>
             </div>
         </div>
     </main>
 </div>
 
+<!-- Event Creation Modal -->
+<div class="modal" id="event-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Add Event</h2>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="event-title">Title</label>
+                <input type="text" id="event-title" placeholder="Event title" required>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="event-date">Date</label>
+                    <input type="date" id="event-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="event-time">Time</label>
+                    <input type="time" id="event-time">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="event-end-date">End Date</label>
+                    <input type="date" id="event-end-date">
+                </div>
+                <div class="form-group">
+                    <label for="event-end-time">End Time</label>
+                    <input type="time" id="event-end-time">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="event-description">Description</label>
+                <textarea id="event-description" placeholder="Event description"></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="event-list">List</label>
+                    <select id="event-list">
+                        <option value="none">None</option>
+                        <!-- Lists will be added dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="event-priority">Priority</label>
+                    <select id="event-priority">
+                        <option value="none">None</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="add-as-task">Add as Task</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="add-as-task">
+                    <label for="add-as-task"></label>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="cancel-event">Cancel</button>
+            <button id="save-event">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Event Details Modal -->
+<div class="modal" id="event-details-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="detail-event-title">Event Title</h2>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="event-detail">
+                <i class="fas fa-calendar"></i>
+                <span id="detail-event-date">Date</span>
+            </div>
+            <div class="event-detail">
+                <i class="fas fa-clock"></i>
+                <span id="detail-event-time">Time</span>
+            </div>
+            <div class="event-detail">
+                <i class="fas fa-list-alt"></i>
+                <span id="detail-event-list">List</span>
+            </div>
+            <div class="event-detail">
+                <i class="fas fa-flag"></i>
+                <span id="detail-event-priority">Priority</span>
+            </div>
+            <div class="event-description" id="detail-event-description">
+                Description
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="delete-event">Delete</button>
+            <button id="edit-event">Edit</button>
+        </div>
+    </div>
+</div>
+
 <script src="Cal.js"></script>
 </body>
+
 </html>
