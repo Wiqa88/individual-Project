@@ -189,14 +189,207 @@ document.addEventListener("DOMContentLoaded", function() {
         addListBtn.addEventListener("click", addNewList);
     }
 // Add this function to your JavaScript file to handle the different navigation views
+// Add this to your todo.js file, within the setupNavigationEvents function
+
+// Add this to your todo.js file to enhance the navigation system
+
+// Add this within your setupNavigationEvents function
     function setupNavigationEvents() {
+        // ... existing code ...
+
+        // Add visual active state for navigation
+        function updateActiveNavItem(viewName) {
+            // Remove active class from all navigation items
+            document.querySelectorAll(".menu a, .list-name").forEach(item => {
+                item.classList.remove("active");
+            });
+
+            // Add active class to the current view
+            if (viewName === "Today") {
+                document.querySelector(".menu a:nth-child(3)").classList.add("active");
+            } else if (viewName === "Next 7 Days") {
+                document.querySelector(".menu a:nth-child(4)").classList.add("active");
+            } else if (viewName === "Important") {
+                document.querySelector(".menu a:nth-child(5)").classList.add("active");
+            } else if (viewName === "Inbox") {
+                document.querySelector(".menu a:nth-child(6)").classList.add("active");
+            } else {
+                // Check if it's a custom list
+                document.querySelectorAll(".list-name").forEach(listItem => {
+                    if (listItem.textContent === viewName) {
+                        listItem.classList.add("active");
+                    }
+                });
+            }
+        }
+
+        // Enhance the page title transition
+        function updatePageTitle(newTitle) {
+            const titleElement = document.querySelector(".today-title");
+
+            // Add transition class
+            titleElement.classList.add("changing");
+
+            // After transition completes, update text and fade back in
+            setTimeout(() => {
+                titleElement.textContent = newTitle;
+                titleElement.classList.remove("changing");
+
+                // Update the active navigation item
+                updateActiveNavItem(newTitle);
+            }, 300);
+        }
+
+        // Modify the filter functions to use the enhanced transitions
+
+        // Modify filterTasksByDate
+        function filterTasksByDate(dateString, viewTitle) {
+            // First update the page title with animation
+            updatePageTitle(viewTitle);
+
+            const taskItems = document.querySelectorAll(".task-item");
+            let hasVisibleTasks = false;
+            let animationDelay = 0;
+
+            // Apply animation to hide all tasks first
+            taskItems.forEach(taskItem => {
+                const parentLi = taskItem.closest('li');
+                parentLi.classList.add("hiding");
+            });
+
+            // Allow time for the hide animation
+            setTimeout(() => {
+                taskItems.forEach(taskItem => {
+                    const parentLi = taskItem.closest('li');
+                    const dateElement = taskItem.querySelector("[data-field='date'] .display-text");
+
+                    if (dateElement) {
+                        const taskDateText = dateElement.textContent.replace("Date: ", "");
+
+                        // Only check date for non-N/A values
+                        if (taskDateText !== "N/A") {
+                            // Convert the displayed date (dd/mm/yyyy) to yyyy-mm-dd for comparison
+                            const dateParts = taskDateText.split('/');
+                            if (dateParts.length === 3) {
+                                const taskDateFormatted = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+
+                                if (taskDateFormatted === dateString) {
+                                    // Show this task with sequential animation
+                                    parentLi.style.display = "flex";
+                                    parentLi.classList.remove("hiding");
+
+                                    // Add sequential fade-in animation
+                                    setTimeout(() => {
+                                        parentLi.classList.add("showing");
+                                        // Remove the class after animation completes
+                                        setTimeout(() => {
+                                            parentLi.classList.remove("showing");
+                                        }, 400);
+                                    }, animationDelay);
+
+                                    animationDelay += 50; // Stagger the animations
+                                    hasVisibleTasks = true;
+                                } else {
+                                    parentLi.style.display = "none";
+                                    parentLi.classList.remove("hiding");
+                                }
+                            } else {
+                                parentLi.style.display = "none";
+                                parentLi.classList.remove("hiding");
+                            }
+                        } else {
+                            parentLi.style.display = "none";
+                            parentLi.classList.remove("hiding");
+                        }
+                    } else {
+                        parentLi.style.display = "none";
+                        parentLi.classList.remove("hiding");
+                    }
+                });
+
+                // Show a message if no tasks are found
+                if (!hasVisibleTasks) {
+                    showNoTasksMessage(viewTitle);
+                } else {
+                    removeNoTasksMessage();
+                }
+            }, 300); // Match the CSS transition time
+        }
+
+        // Similarly modify filterTasksByDateRange and filterTasksByPriority
+        // with the same animation pattern
+
+        // Update filterTasksByList to use the new animations
+        function filterTasksByList(listName) {
+            // First update the page title with animation
+            updatePageTitle(listName);
+
+            const taskItems = document.querySelectorAll(".task-item");
+            let hasVisibleTasks = false;
+            let animationDelay = 0;
+
+            // Apply animation to hide all tasks first
+            taskItems.forEach(taskItem => {
+                const parentLi = taskItem.closest('li');
+                parentLi.classList.add("hiding");
+            });
+
+            // Allow time for the hide animation
+            setTimeout(() => {
+                taskItems.forEach(taskItem => {
+                    const parentLi = taskItem.closest('li');
+                    const taskList = taskItem.querySelector("[data-field='list'] .display-text").textContent.replace("List: ", "");
+
+                    if (listName === taskList) {
+                        // Show this task with sequential animation
+                        parentLi.style.display = "flex";
+                        parentLi.classList.remove("hiding");
+
+                        // Add sequential fade-in animation
+                        setTimeout(() => {
+                            parentLi.classList.add("showing");
+                            // Remove the class after animation completes
+                            setTimeout(() => {
+                                parentLi.classList.remove("showing");
+                            }, 400);
+                        }, animationDelay);
+
+                        animationDelay += 50; // Stagger the animations
+                        hasVisibleTasks = true;
+                    } else {
+                        parentLi.style.display = "none";
+                        parentLi.classList.remove("hiding");
+                    }
+                });
+
+                // Show a message if no tasks are found
+                if (!hasVisibleTasks) {
+                    showNoTasksMessage(listName);
+                } else {
+                    removeNoTasksMessage();
+                }
+            }, 300); // Match the CSS transition time
+        }
+
+        // Initialize with Inbox view as active by default
+        document.querySelector(".menu a:nth-child(6)").classList.add("active");
+    }
+
+
+    function setupNavigationEvents() {
+        // Get all navigation links
+        const navLinks = document.querySelectorAll(".menu a, .list-name");
+
         // Today view - shows tasks due today
         document.querySelector(".menu a:nth-child(3)").addEventListener("click", function(e) {
             e.preventDefault();
             const today = new Date();
             const todayFormatted = formatDateForComparison(today);
 
-            filterTasksByDate(todayFormatted, "Today");
+            // Apply animation before filtering
+            applyViewTransition(() => {
+                filterTasksByDate(todayFormatted, "Today");
+            });
         });
 
         // Next 7 Days view - shows tasks due in the next 7 days
@@ -210,80 +403,138 @@ document.addEventListener("DOMContentLoaded", function() {
             const todayFormatted = formatDateForComparison(today);
             const next7DaysFormatted = formatDateForComparison(next7Days);
 
-            filterTasksByDateRange(todayFormatted, next7DaysFormatted, "Next 7 Days");
+            // Apply animation before filtering
+            applyViewTransition(() => {
+                filterTasksByDateRange(todayFormatted, next7DaysFormatted, "Next 7 Days");
+            });
         });
 
         // Important view - shows high priority tasks
         document.querySelector(".menu a:nth-child(5)").addEventListener("click", function(e) {
             e.preventDefault();
-            filterTasksByPriority("high", "Important");
+            // Apply animation before filtering
+            applyViewTransition(() => {
+                filterTasksByPriority("high", "Important");
+            });
         });
 
         // Inbox view - shows all tasks
         document.querySelector(".menu a:nth-child(6)").addEventListener("click", function(e) {
             e.preventDefault();
-            // Show all tasks
-            const taskItems = document.querySelectorAll(".task-item");
-            taskItems.forEach(taskItem => {
-                const parentLi = taskItem.closest('li');
-                parentLi.style.display = "flex";
+            // Apply animation before filtering
+            applyViewTransition(() => {
+                // Show all tasks
+                const taskItems = document.querySelectorAll(".task-item");
+                taskItems.forEach(taskItem => {
+                    const parentLi = taskItem.closest('li');
+                    parentLi.style.display = "flex";
+                });
+                document.querySelector(".today-title").textContent = "Inbox";
+                removeNoTasksMessage();
             });
-            document.querySelector(".today-title").textContent = "Inbox";
-        });
-    }
-
-// Helper function to format dates for comparison
-    function formatDateForComparison(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
-
-// Filter tasks by exact date match
-    function filterTasksByDate(dateString, viewTitle) {
-        const taskItems = document.querySelectorAll(".task-item");
-        let hasVisibleTasks = false;
-
-        taskItems.forEach(taskItem => {
-            const parentLi = taskItem.closest('li');
-            const dateElement = taskItem.querySelector("[data-field='date'] .display-text");
-
-            if (dateElement) {
-                const taskDateText = dateElement.textContent.replace("Date: ", "");
-
-                // Only check date for non-N/A values
-                if (taskDateText !== "N/A") {
-                    // Convert the displayed date (dd/mm/yyyy) to yyyy-mm-dd for comparison
-                    const dateParts = taskDateText.split('/');
-                    if (dateParts.length === 3) {
-                        const taskDateFormatted = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-
-                        if (taskDateFormatted === dateString) {
-                            parentLi.style.display = "flex";
-                            hasVisibleTasks = true;
-                        } else {
-                            parentLi.style.display = "none";
-                        }
-                    } else {
-                        parentLi.style.display = "none";
-                    }
-                } else {
-                    parentLi.style.display = "none";
-                }
-            } else {
-                parentLi.style.display = "none";
-            }
         });
 
-        document.querySelector(".today-title").textContent = viewTitle;
+        // Update the list item click handler to include the transition
+        // This needs to be applied to any dynamically created list items
+        function updateListClickHandlers() {
+            document.querySelectorAll(".list-name").forEach(listNameEl => {
+                // Remove old event listeners (if any)
+                const newListNameEl = listNameEl.cloneNode(true);
+                listNameEl.parentNode.replaceChild(newListNameEl, listNameEl);
 
-        // Show a message if no tasks are found
-        if (!hasVisibleTasks) {
-            showNoTasksMessage(viewTitle);
-        } else {
-            removeNoTasksMessage();
+                // Add new event listener with transition
+                newListNameEl.addEventListener('click', function() {
+                    const listName = this.textContent;
+                    applyViewTransition(() => {
+                        filterTasksByList(listName);
+                    });
+                });
+            });
         }
+
+        // Call this function after rendering lists
+        updateListClickHandlers();
+    }
+
+// Add this new function to apply the transition effect
+    function applyViewTransition(callback) {
+        // Get the task list container
+        const taskListContainer = document.querySelector('.task-list-container');
+
+        // Add a class for the fade-out animation
+        taskListContainer.classList.add('view-transition-fade-out');
+
+        // After the fade-out animation completes
+        setTimeout(() => {
+            // Execute the callback (filter function)
+            callback();
+
+            // Remove the fade-out class
+            taskListContainer.classList.remove('view-transition-fade-out');
+
+            // Add the fade-in class
+            taskListContainer.classList.add('view-transition-fade-in');
+
+            // After the fade-in animation completes, remove the class
+            setTimeout(() => {
+                taskListContainer.classList.remove('view-transition-fade-in');
+            }, 300);
+        }, 300);
+    }
+
+// Modify the renderLists function to update click handlers after rendering
+    function renderLists() {
+        listsContainer.innerHTML = '';
+
+        lists.forEach((listName, index) => {
+            const listItem = document.createElement("div");
+            listItem.classList.add("list-item");
+
+            // List name (clickable)
+            const listName_el = document.createElement("span");
+            listName_el.className = "list-name";
+            listName_el.dataset.index = index;
+            listName_el.textContent = listName;
+
+            // We'll update the event listeners in a separate function
+
+            // List actions (edit, delete)
+            const listActions = document.createElement("div");
+            listActions.className = "list-actions";
+
+            // Edit button
+            const editBtn = document.createElement("button");
+            editBtn.className = "list-edit-btn";
+            editBtn.dataset.index = index;
+            editBtn.textContent = "Edit";
+            editBtn.addEventListener('click', function () {
+                editList(index, listItem);
+            });
+
+            // Delete button
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "list-delete-btn";
+            deleteBtn.dataset.index = index;
+            deleteBtn.textContent = "Delete";
+            deleteBtn.addEventListener('click', function () {
+                deleteList(index, listName);
+            });
+
+            // Assemble list item
+            listActions.append(editBtn, deleteBtn);
+            listItem.append(listName_el, listActions);
+            listsContainer.appendChild(listItem);
+        });
+
+        // Update the click handlers for list items
+        document.querySelectorAll(".list-name").forEach(listNameEl => {
+            listNameEl.addEventListener('click', function() {
+                const listName = this.textContent;
+                applyViewTransition(() => {
+                    filterTasksByList(listName);
+                });
+            });
+        });
     }
 
 // Filter tasks by date range
