@@ -29,7 +29,7 @@
 
         <div class="sidebar-left">
             <div class="menu">
-                <a href="#appearance-section" class="settings-nav-item active">
+                <a href="#appearance-section" class="settings-nav-item">
                     <i class="fas fa-palette"></i> Appearance
                 </a>
                 <a href="#notifications-section" class="settings-nav-item">
@@ -37,6 +37,9 @@
                 </a>
                 <a href="#account-section" class="settings-nav-item">
                     <i class="fas fa-user"></i> Account
+                </a>
+                <a href="#calendar-integration-section" class="settings-nav-item active">
+                    <i class="fas fa-calendar-alt"></i> Calendar Integration
                 </a>
                 <a href="#preferences-section" class="settings-nav-item">
                     <i class="fas fa-sliders-h"></i> Preferences
@@ -56,7 +59,7 @@
 
         <div class="settings-container">
             <!-- Appearance Section -->
-            <section id="appearance-section" class="settings-section active">
+            <section id="appearance-section" class="settings-section">
                 <h2><i class="fas fa-palette"></i> Appearance</h2>
 
                 <div class="setting-option">
@@ -195,6 +198,98 @@
                 </div>
             </section>
 
+            <!-- NEW Calendar Integration Section -->
+            <section id="calendar-integration-section" class="settings-section active">
+                <h2><i class="fas fa-calendar-alt"></i> Calendar Integration</h2>
+
+                <div class="setting-option">
+                    <div class="setting-description">
+                        <h3>Google Calendar</h3>
+                        <p>Sync events with your Google Calendar</p>
+                    </div>
+                    <div class="setting-control calendar-integration-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="google-calendar-sync">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <button id="google-connect-btn" class="connect-calendar-btn">
+                            <i class="fab fa-google"></i> Connect
+                        </button>
+                    </div>
+                </div>
+
+                <div id="google-calendars-container" class="calendars-container" style="display: none;">
+                    <h4>Select Google Calendars to Import:</h4>
+                    <div class="calendar-list" id="google-calendar-list">
+                        <!-- Calendar checkboxes will be added here dynamically -->
+                    </div>
+                </div>
+
+                <div class="setting-option">
+                    <div class="setting-description">
+                        <h3>Outlook Calendar</h3>
+                        <p>Sync events with your Outlook Calendar</p>
+                    </div>
+                    <div class="setting-control calendar-integration-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="outlook-calendar-sync">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <button id="outlook-connect-btn" class="connect-calendar-btn">
+                            <i class="fab fa-microsoft"></i> Connect
+                        </button>
+                    </div>
+                </div>
+
+                <div id="outlook-calendars-container" class="calendars-container" style="display: none;">
+                    <h4>Select Outlook Calendars to Import:</h4>
+                    <div class="calendar-list" id="outlook-calendar-list">
+                        <!-- Calendar checkboxes will be added here dynamically -->
+                    </div>
+                </div>
+
+                <div class="setting-option">
+                    <div class="setting-description">
+                        <h3>Sync Frequency</h3>
+                        <p>How often to check for calendar updates</p>
+                    </div>
+                    <div class="setting-control">
+                        <select id="calendar-sync-frequency">
+                            <option value="5">Every 5 minutes</option>
+                            <option value="15">Every 15 minutes</option>
+                            <option value="30" selected>Every 30 minutes</option>
+                            <option value="60">Every hour</option>
+                            <option value="manual">Manual sync only</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="setting-option">
+                    <div class="setting-description">
+                        <h3>Two-Way Sync</h3>
+                        <p>Also push changes to connected calendars</p>
+                    </div>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="two-way-sync" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="setting-option">
+                    <div class="setting-description">
+                        <h3>Manually Sync Now</h3>
+                        <p>Immediately synchronize with connected calendars</p>
+                    </div>
+                    <div class="setting-control">
+                        <button id="sync-now-btn" class="sync-now-btn">
+                            <i class="fas fa-sync-alt"></i> Sync Now
+                        </button>
+                    </div>
+                </div>
+            </section>
+
             <!-- Preferences Section -->
             <section id="preferences-section" class="settings-section">
                 <h2><i class="fas fa-sliders-h"></i> Preferences</h2>
@@ -305,6 +400,68 @@
             </section>
         </div>
     </main>
+</div>
+
+<!-- Google Auth Token Modal -->
+<div class="modal" id="google-auth-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Connect to Google Calendar</h2>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Please authenticate with your Google account to enable calendar synchronization.</p>
+            <div class="auth-instructions">
+                <ol>
+                    <li>Click the "Authenticate" button below</li>
+                    <li>Sign in to your Google account</li>
+                    <li>Allow permissions for calendar access</li>
+                    <li>Copy the provided authentication code</li>
+                    <li>Paste it into the field below</li>
+                </ol>
+            </div>
+            <div class="auth-form">
+                <input type="text" id="google-auth-code" placeholder="Paste authentication code here">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="google-auth-button" class="auth-button">
+                <i class="fab fa-google"></i> Authenticate
+            </button>
+            <button id="google-submit-code" class="submit-code-button">Submit Code</button>
+        </div>
+    </div>
+</div>
+
+<!-- Outlook Auth Token Modal -->
+<div class="modal" id="outlook-auth-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Connect to Outlook Calendar</h2>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Please authenticate with your Microsoft account to enable calendar synchronization.</p>
+            <div class="auth-instructions">
+                <ol>
+                    <li>Click the "Authenticate" button below</li>
+                    <li>Sign in to your Microsoft account</li>
+                    <li>Allow permissions for calendar access</li>
+                    <li>Copy the provided authentication code</li>
+                    <li>Paste it into the field below</li>
+                </ol>
+            </div>
+            <div class="auth-form">
+                <input type="text" id="outlook-auth-code" placeholder="Paste authentication code here">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="outlook-auth-button" class="auth-button">
+                <i class="fab fa-microsoft"></i> Authenticate
+            </button>
+            <button id="outlook-submit-code" class="submit-code-button">Submit Code</button>
+        </div>
+    </div>
 </div>
 
 <script src="Settings.js"></script>

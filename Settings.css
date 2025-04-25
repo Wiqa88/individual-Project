@@ -342,3 +342,231 @@ input:checked + .toggle-slider:before {
     }
 }
 
+/* Calendar Integration Specific Styles */
+.calendar-integration-control {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.connect-calendar-btn {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 5px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.connect-calendar-btn:hover {
+    background-color: #e5e5e5;
+    transform: translateY(-1px);
+}
+
+.connect-calendar-btn:active {
+    transform: translateY(1px);
+}
+
+.connect-calendar-btn i {
+    font-size: 16px;
+}
+
+#google-connect-btn i {
+    color: #DB4437;
+}
+
+#outlook-connect-btn i {
+    color: #0078D4;
+}
+
+.sync-now-btn {
+    background-color: #1e3a8a;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sync-now-btn:hover {
+    background-color: #162d6a;
+    transform: translateY(-1px);
+}
+
+.sync-now-btn:active {
+    transform: translateY(1px);
+}
+
+.sync-now-btn i {
+    font-size: 14px;
+}
+
+/* Calendar selection container */
+.calendars-container {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px 0 20px;
+    border: 1px solid #eee;
+}
+
+.calendars-container h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 15px;
+    color: #555;
+}
+
+.calendar-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.calendar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.calendar-checkbox {
+    margin: 0;
+}
+
+.calendar-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.calendar-name {
+    font-size: 14px;
+}
+
+/* Auth modal styles */
+.auth-instructions {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 5px;
+    margin: 15px 0;
+}
+
+.auth-instructions ol {
+    margin: 0;
+    padding-left: 25px;
+}
+
+.auth-instructions li {
+    margin-bottom: 8px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.auth-form {
+    margin: 20px 0 10px;
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.auth-button {
+    background-color: #4285F4;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#outlook-auth-button {
+    background-color: #0078D4;
+}
+
+.submit-code-button {
+    background-color: #1e3a8a;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 15px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.auth-button:hover, .submit-code-button:hover {
+    opacity: 0.9;
+}
+
+/* Connected state styles */
+.connect-calendar-btn.connected {
+    background-color: #E8F5E9;
+    border-color: #A5D6A7;
+    color: #388E3C;
+}
+
+.connect-calendar-btn.connected i {
+    color: #388E3C;
+}
+
+/* Connection status indicator */
+.connection-status {
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #666;
+}
+
+.connection-status.connected {
+    color: #388E3C;
+}
+
+.connection-status.error {
+    color: #D32F2F;
+}
+
+.connection-status i {
+    margin-right: 5px;
+    font-size: 14px;
+}
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 500px;
+    overflow: hidden;
+}
+
+/* Add these styles to your existing Settings.css file */
