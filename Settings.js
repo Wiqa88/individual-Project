@@ -467,18 +467,21 @@ function showGoogleAuthModal() {
 }
 
 function initiateGoogleAuth() {
-    // In a real implementation, this would redirect to Google's OAuth page
-    // For demo purposes, we'll simulate the auth flow
-    const authUrl = "https://accounts.google.com/o/oauth2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&scope=https://www.googleapis.com/auth/calendar&response_type=code";
+    // Real Google OAuth 2.0 flow
+    const clientId = '233840126993-uned9hu7bedgpnursvggctc8c0qvussl.apps.googleusercontent.com';
 
-    // In a real app, you would redirect to this URL:
-    // window.open(authUrl, '_blank');
+    // Replace this with your actual registered redirect URI from Google Cloud Console
+    const redirectUri = encodeURIComponent('http://localhost:63342/todo.css/Settings.html');
 
-    // For demo purposes, we'll simulate the process
-    alert("In a real implementation, this would open Google's authentication page. For this demo, we'll simulate the process.");
+    const scope = encodeURIComponent('https://www.googleapis.com/auth/calendar.readonly');
+    const responseType = 'code';
+    const accessType = 'offline';
+    const prompt = 'consent';
 
-    // Show instructions for the auth code
-    document.getElementById('google-auth-code').focus();
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=${responseType}&access_type=${accessType}&prompt=${prompt}`;
+
+    // Open the OAuth consent window
+    window.open(authUrl, '_blank', 'width=500,height=600');
 }
 
 function submitGoogleAuthCode() {
