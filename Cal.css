@@ -673,3 +673,30 @@ main {
     transition: transform 0.2s;
 }
 
+/* Additional CSS for settings icon */
+.settings-li {
+    margin-top: auto !important;
+    margin-bottom: 30px !important;
+}
+
+.sidebar-main nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+}
+
+.sidebar-main nav ul li a i.fa-cog {
+    font-size: 40px;
+    color: #333;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.sidebar-main nav ul li a i.fa-cog:hover {
+    transform: rotate(90deg) scale(1.1);
+}
+
+/* This is just the additional CSS to add to your existing CSS file */

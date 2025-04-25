@@ -384,30 +384,6 @@ textarea.edit-input {
     padding-top: 20px;
 }
 
-.sidebar-main nav ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.sidebar-main nav ul li {
-    margin-bottom: 30px;
-}
-
-.sidebar-main nav ul li a img {
-    width: 50px;
-    height: 50px;
-    object-fit: contain;
-    transition: transform 0.2s ease-in-out;
-}
-
-.sidebar-main nav ul li a img:hover {
-    transform: scale(1.1);
-}
-
 /* Sidebar: Task Management (Second Sidebar) */
 .sidebar-left {
     width: 220px;
@@ -2449,3 +2425,30 @@ textarea.edit-input {
                     }
 
 
+                    /* Additional CSS for settings icon */
+                    .settings-li {
+                        margin-top: auto !important;
+                        margin-bottom: 30px !important;
+                    }
+
+                    .sidebar-main nav ul {
+                        list-style: none;
+                        padding: 0;
+                        margin: 0;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        height: 100vh;
+                    }
+
+                    .sidebar-main nav ul li a i.fa-cog {
+                        font-size: 40px;
+                        color: #333;
+                        transition: transform 0.3s ease, color 0.3s ease;
+                    }
+
+                    .sidebar-main nav ul li a i.fa-cog:hover {
+                        transform: rotate(90deg) scale(1.1);
+                    }
+
+                    /* This is just the additional CSS to add to your existing CSS file */
