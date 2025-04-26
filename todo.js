@@ -189,14 +189,207 @@ document.addEventListener("DOMContentLoaded", function() {
         addListBtn.addEventListener("click", addNewList);
     }
 // Add this function to your JavaScript file to handle the different navigation views
+// Add this to your todo.js file, within the setupNavigationEvents function
+
+// Add this to your todo.js file to enhance the navigation system
+
+// Add this within your setupNavigationEvents function
     function setupNavigationEvents() {
+        // ... existing code ...
+
+        // Add visual active state for navigation
+        function updateActiveNavItem(viewName) {
+            // Remove active class from all navigation items
+            document.querySelectorAll(".menu a, .list-name").forEach(item => {
+                item.classList.remove("active");
+            });
+
+            // Add active class to the current view
+            if (viewName === "Today") {
+                document.querySelector(".menu a:nth-child(3)").classList.add("active");
+            } else if (viewName === "Next 7 Days") {
+                document.querySelector(".menu a:nth-child(4)").classList.add("active");
+            } else if (viewName === "Important") {
+                document.querySelector(".menu a:nth-child(5)").classList.add("active");
+            } else if (viewName === "Inbox") {
+                document.querySelector(".menu a:nth-child(6)").classList.add("active");
+            } else {
+                // Check if it's a custom list
+                document.querySelectorAll(".list-name").forEach(listItem => {
+                    if (listItem.textContent === viewName) {
+                        listItem.classList.add("active");
+                    }
+                });
+            }
+        }
+
+        // Enhance the page title transition
+        function updatePageTitle(newTitle) {
+            const titleElement = document.querySelector(".today-title");
+
+            // Add transition class
+            titleElement.classList.add("changing");
+
+            // After transition completes, update text and fade back in
+            setTimeout(() => {
+                titleElement.textContent = newTitle;
+                titleElement.classList.remove("changing");
+
+                // Update the active navigation item
+                updateActiveNavItem(newTitle);
+            }, 300);
+        }
+
+        // Modify the filter functions to use the enhanced transitions
+
+        // Modify filterTasksByDate
+        function filterTasksByDate(dateString, viewTitle) {
+            // First update the page title with animation
+            updatePageTitle(viewTitle);
+
+            const taskItems = document.querySelectorAll(".task-item");
+            let hasVisibleTasks = false;
+            let animationDelay = 0;
+
+            // Apply animation to hide all tasks first
+            taskItems.forEach(taskItem => {
+                const parentLi = taskItem.closest('li');
+                parentLi.classList.add("hiding");
+            });
+
+            // Allow time for the hide animation
+            setTimeout(() => {
+                taskItems.forEach(taskItem => {
+                    const parentLi = taskItem.closest('li');
+                    const dateElement = taskItem.querySelector("[data-field='date'] .display-text");
+
+                    if (dateElement) {
+                        const taskDateText = dateElement.textContent.replace("Date: ", "");
+
+                        // Only check date for non-N/A values
+                        if (taskDateText !== "N/A") {
+                            // Convert the displayed date (dd/mm/yyyy) to yyyy-mm-dd for comparison
+                            const dateParts = taskDateText.split('/');
+                            if (dateParts.length === 3) {
+                                const taskDateFormatted = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+
+                                if (taskDateFormatted === dateString) {
+                                    // Show this task with sequential animation
+                                    parentLi.style.display = "flex";
+                                    parentLi.classList.remove("hiding");
+
+                                    // Add sequential fade-in animation
+                                    setTimeout(() => {
+                                        parentLi.classList.add("showing");
+                                        // Remove the class after animation completes
+                                        setTimeout(() => {
+                                            parentLi.classList.remove("showing");
+                                        }, 400);
+                                    }, animationDelay);
+
+                                    animationDelay += 50; // Stagger the animations
+                                    hasVisibleTasks = true;
+                                } else {
+                                    parentLi.style.display = "none";
+                                    parentLi.classList.remove("hiding");
+                                }
+                            } else {
+                                parentLi.style.display = "none";
+                                parentLi.classList.remove("hiding");
+                            }
+                        } else {
+                            parentLi.style.display = "none";
+                            parentLi.classList.remove("hiding");
+                        }
+                    } else {
+                        parentLi.style.display = "none";
+                        parentLi.classList.remove("hiding");
+                    }
+                });
+
+                // Show a message if no tasks are found
+                if (!hasVisibleTasks) {
+                    showNoTasksMessage(viewTitle);
+                } else {
+                    removeNoTasksMessage();
+                }
+            }, 300); // Match the CSS transition time
+        }
+
+        // Similarly modify filterTasksByDateRange and filterTasksByPriority
+        // with the same animation pattern
+
+        // Update filterTasksByList to use the new animations
+        function filterTasksByList(listName) {
+            // First update the page title with animation
+            updatePageTitle(listName);
+
+            const taskItems = document.querySelectorAll(".task-item");
+            let hasVisibleTasks = false;
+            let animationDelay = 0;
+
+            // Apply animation to hide all tasks first
+            taskItems.forEach(taskItem => {
+                const parentLi = taskItem.closest('li');
+                parentLi.classList.add("hiding");
+            });
+
+            // Allow time for the hide animation
+            setTimeout(() => {
+                taskItems.forEach(taskItem => {
+                    const parentLi = taskItem.closest('li');
+                    const taskList = taskItem.querySelector("[data-field='list'] .display-text").textContent.replace("List: ", "");
+
+                    if (listName === taskList) {
+                        // Show this task with sequential animation
+                        parentLi.style.display = "flex";
+                        parentLi.classList.remove("hiding");
+
+                        // Add sequential fade-in animation
+                        setTimeout(() => {
+                            parentLi.classList.add("showing");
+                            // Remove the class after animation completes
+                            setTimeout(() => {
+                                parentLi.classList.remove("showing");
+                            }, 400);
+                        }, animationDelay);
+
+                        animationDelay += 50; // Stagger the animations
+                        hasVisibleTasks = true;
+                    } else {
+                        parentLi.style.display = "none";
+                        parentLi.classList.remove("hiding");
+                    }
+                });
+
+                // Show a message if no tasks are found
+                if (!hasVisibleTasks) {
+                    showNoTasksMessage(listName);
+                } else {
+                    removeNoTasksMessage();
+                }
+            }, 300); // Match the CSS transition time
+        }
+
+        // Initialize with Inbox view as active by default
+        document.querySelector(".menu a:nth-child(6)").classList.add("active");
+    }
+
+
+    function setupNavigationEvents() {
+        // Get all navigation links
+        const navLinks = document.querySelectorAll(".menu a, .list-name");
+
         // Today view - shows tasks due today
         document.querySelector(".menu a:nth-child(3)").addEventListener("click", function(e) {
             e.preventDefault();
             const today = new Date();
             const todayFormatted = formatDateForComparison(today);
 
-            filterTasksByDate(todayFormatted, "Today");
+            // Apply animation before filtering
+            applyViewTransition(() => {
+                filterTasksByDate(todayFormatted, "Today");
+            });
         });
 
         // Next 7 Days view - shows tasks due in the next 7 days
@@ -210,80 +403,138 @@ document.addEventListener("DOMContentLoaded", function() {
             const todayFormatted = formatDateForComparison(today);
             const next7DaysFormatted = formatDateForComparison(next7Days);
 
-            filterTasksByDateRange(todayFormatted, next7DaysFormatted, "Next 7 Days");
+            // Apply animation before filtering
+            applyViewTransition(() => {
+                filterTasksByDateRange(todayFormatted, next7DaysFormatted, "Next 7 Days");
+            });
         });
 
         // Important view - shows high priority tasks
         document.querySelector(".menu a:nth-child(5)").addEventListener("click", function(e) {
             e.preventDefault();
-            filterTasksByPriority("high", "Important");
+            // Apply animation before filtering
+            applyViewTransition(() => {
+                filterTasksByPriority("high", "Important");
+            });
         });
 
         // Inbox view - shows all tasks
         document.querySelector(".menu a:nth-child(6)").addEventListener("click", function(e) {
             e.preventDefault();
-            // Show all tasks
-            const taskItems = document.querySelectorAll(".task-item");
-            taskItems.forEach(taskItem => {
-                const parentLi = taskItem.closest('li');
-                parentLi.style.display = "flex";
+            // Apply animation before filtering
+            applyViewTransition(() => {
+                // Show all tasks
+                const taskItems = document.querySelectorAll(".task-item");
+                taskItems.forEach(taskItem => {
+                    const parentLi = taskItem.closest('li');
+                    parentLi.style.display = "flex";
+                });
+                document.querySelector(".today-title").textContent = "Inbox";
+                removeNoTasksMessage();
             });
-            document.querySelector(".today-title").textContent = "Inbox";
-        });
-    }
-
-// Helper function to format dates for comparison
-    function formatDateForComparison(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
-
-// Filter tasks by exact date match
-    function filterTasksByDate(dateString, viewTitle) {
-        const taskItems = document.querySelectorAll(".task-item");
-        let hasVisibleTasks = false;
-
-        taskItems.forEach(taskItem => {
-            const parentLi = taskItem.closest('li');
-            const dateElement = taskItem.querySelector("[data-field='date'] .display-text");
-
-            if (dateElement) {
-                const taskDateText = dateElement.textContent.replace("Date: ", "");
-
-                // Only check date for non-N/A values
-                if (taskDateText !== "N/A") {
-                    // Convert the displayed date (dd/mm/yyyy) to yyyy-mm-dd for comparison
-                    const dateParts = taskDateText.split('/');
-                    if (dateParts.length === 3) {
-                        const taskDateFormatted = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-
-                        if (taskDateFormatted === dateString) {
-                            parentLi.style.display = "flex";
-                            hasVisibleTasks = true;
-                        } else {
-                            parentLi.style.display = "none";
-                        }
-                    } else {
-                        parentLi.style.display = "none";
-                    }
-                } else {
-                    parentLi.style.display = "none";
-                }
-            } else {
-                parentLi.style.display = "none";
-            }
         });
 
-        document.querySelector(".today-title").textContent = viewTitle;
+        // Update the list item click handler to include the transition
+        // This needs to be applied to any dynamically created list items
+        function updateListClickHandlers() {
+            document.querySelectorAll(".list-name").forEach(listNameEl => {
+                // Remove old event listeners (if any)
+                const newListNameEl = listNameEl.cloneNode(true);
+                listNameEl.parentNode.replaceChild(newListNameEl, listNameEl);
 
-        // Show a message if no tasks are found
-        if (!hasVisibleTasks) {
-            showNoTasksMessage(viewTitle);
-        } else {
-            removeNoTasksMessage();
+                // Add new event listener with transition
+                newListNameEl.addEventListener('click', function() {
+                    const listName = this.textContent;
+                    applyViewTransition(() => {
+                        filterTasksByList(listName);
+                    });
+                });
+            });
         }
+
+        // Call this function after rendering lists
+        updateListClickHandlers();
+    }
+
+// Add this new function to apply the transition effect
+    function applyViewTransition(callback) {
+        // Get the task list container
+        const taskListContainer = document.querySelector('.task-list-container');
+
+        // Add a class for the fade-out animation
+        taskListContainer.classList.add('view-transition-fade-out');
+
+        // After the fade-out animation completes
+        setTimeout(() => {
+            // Execute the callback (filter function)
+            callback();
+
+            // Remove the fade-out class
+            taskListContainer.classList.remove('view-transition-fade-out');
+
+            // Add the fade-in class
+            taskListContainer.classList.add('view-transition-fade-in');
+
+            // After the fade-in animation completes, remove the class
+            setTimeout(() => {
+                taskListContainer.classList.remove('view-transition-fade-in');
+            }, 300);
+        }, 300);
+    }
+
+// Modify the renderLists function to update click handlers after rendering
+    function renderLists() {
+        listsContainer.innerHTML = '';
+
+        lists.forEach((listName, index) => {
+            const listItem = document.createElement("div");
+            listItem.classList.add("list-item");
+
+            // List name (clickable)
+            const listName_el = document.createElement("span");
+            listName_el.className = "list-name";
+            listName_el.dataset.index = index;
+            listName_el.textContent = listName;
+
+            // We'll update the event listeners in a separate function
+
+            // List actions (edit, delete)
+            const listActions = document.createElement("div");
+            listActions.className = "list-actions";
+
+            // Edit button
+            const editBtn = document.createElement("button");
+            editBtn.className = "list-edit-btn";
+            editBtn.dataset.index = index;
+            editBtn.textContent = "Edit";
+            editBtn.addEventListener('click', function () {
+                editList(index, listItem);
+            });
+
+            // Delete button
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "list-delete-btn";
+            deleteBtn.dataset.index = index;
+            deleteBtn.textContent = "Delete";
+            deleteBtn.addEventListener('click', function () {
+                deleteList(index, listName);
+            });
+
+            // Assemble list item
+            listActions.append(editBtn, deleteBtn);
+            listItem.append(listName_el, listActions);
+            listsContainer.appendChild(listItem);
+        });
+
+        // Update the click handlers for list items
+        document.querySelectorAll(".list-name").forEach(listNameEl => {
+            listNameEl.addEventListener('click', function() {
+                const listName = this.textContent;
+                applyViewTransition(() => {
+                    filterTasksByList(listName);
+                });
+            });
+        });
     }
 
 // Filter tasks by date range
@@ -757,6 +1008,7 @@ document.addEventListener("DOMContentLoaded", function() {
         return containerDiv;
     }
 
+// This function needs to be updated to handle immediate date formatting
     function saveFieldEdit(fieldName, value, task, displayElement, prefix = '') {
         // Get the original value
         const originalValue = task[fieldName];
@@ -778,8 +1030,13 @@ document.addEventListener("DOMContentLoaded", function() {
         // Update task object
         task[fieldName] = value;
 
-        // Update display with proper capitalization for priority
-        if (fieldName === 'priority' && value) {
+        // Format date fields for display
+        if ((fieldName === 'date' || fieldName === 'reminder') && value) {
+            // Format the date for display (convert from yyyy-mm-dd to dd/mm/yyyy)
+            const formattedDate = formatDate(value);
+            displayElement.textContent = prefix + formattedDate;
+        } else if (fieldName === 'priority' && value) {
+            // Update display with proper capitalization for priority
             const capitalizedValue = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
             displayElement.textContent = prefix + (capitalizedValue || 'N/A');
         } else {
@@ -847,6 +1104,206 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             }
         }
+    }
+
+// Update this function to ensure date is formatted correctly when a task is added
+    function addTask() {
+        const titleValue = taskTitle.value.trim();
+
+        if (titleValue) {
+            const newTask = {
+                id: Date.now(), // Unique ID using timestamp
+                title: titleValue,
+                description: taskDescription.value.trim(),
+                date: dueDate.value || null,
+                reminder: reminder.value || null,
+                priority: priority.value !== 'priority' ? priority.value : 'medium',
+                list: listSelect.value !== 'default' ? listSelect.value : 'N/A',
+                completed: false,
+                createdAt: new Date().toISOString(),
+                subtasks: [] // Initialize empty subtasks array
+            };
+
+            // Add task to global array
+            tasks.push(newTask);
+
+            // Create task element
+            const taskItem = createTaskElement(newTask);
+            taskList.appendChild(taskItem);
+
+            // Remove no tasks message if it exists
+            removeNoTasksMessage();
+
+            // Save tasks to localStorage
+            saveTasks();
+
+            // Reset form
+            clearTaskForm();
+
+            // Collapse creation box
+            taskCreationBox.classList.remove("expanded");
+        } else {
+            alert("Please enter a task title");
+        }
+    }
+
+// Update formatDate function to better handle different date formats
+    function formatDate(dateString) {
+        if (!dateString) return 'N/A';
+
+        // Check if the date is already in dd/mm/yyyy format
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+            return dateString;
+        }
+
+        // Convert from yyyy-mm-dd to dd/mm/yyyy
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) {
+                // Try parsing as yyyy-mm-dd if direct Date parsing fails
+                const parts = dateString.split('-');
+                if (parts.length === 3) {
+                    return `${parts[2].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[0]}`;
+                }
+                return 'N/A';
+            }
+
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+
+            return `${day}/${month}/${year}`;
+        } catch (e) {
+            // If any error occurs, return N/A
+            return 'N/A';
+        }
+    }
+
+// Ensure dates are formatted correctly when tasks are first displayed
+    function createTaskElement(task) {
+        const taskItem = document.createElement("li");
+
+        // Set left border color based on priority
+        const priorityColors = {
+            high: '#ff5555',
+            medium: '#ffa500',
+            low: '#1e3a8a',
+            'N/A': '#1e3a8a'
+        };
+        taskItem.style.borderLeftColor = priorityColors[task.priority] || '#1e3a8a';
+
+        // Add opacity if task is completed
+        if (task.completed) {
+            taskItem.style.opacity = '0.6';
+        }
+
+        // Task item inner structure
+        const taskItemInner = document.createElement("div");
+        taskItemInner.className = "task-item";
+
+        // Task completion ring
+        const taskRing = document.createElement("div");
+        taskRing.className = task.completed ? "task-ring completed" : "task-ring";
+        taskRing.addEventListener("click", function () {
+            toggleTaskCompletion(task, taskRing, taskItem);
+        });
+
+        // Task content container
+        const taskContent = document.createElement("div");
+        taskContent.style.width = "100%";
+
+        // Format dates for display - always format here to ensure consistent display
+        const formattedDueDate = formatDate(task.date);
+        const formattedReminderDate = formatDate(task.reminder);
+
+        // Title with inline editing
+        const titleDiv = createEditableField('title', task.title, 'task-title', task);
+
+        // Description with inline editing
+        const descDiv = createEditableField('description', task.description, 'task-desc', task);
+
+        // Metadata container
+        const metadata = document.createElement("div");
+        metadata.classList.add("task-metadata");
+
+        // Date with inline editing - use formatted date
+        const dateDiv = createEditableField('date', formattedDueDate, '', task, 'Date: ');
+
+        // Reminder with inline editing - use formatted date
+        const reminderDiv = createEditableField('reminder', formattedReminderDate, '', task, 'Reminder: ');
+
+        // Priority with inline editing (select dropdown)
+        const priorityDiv = createEditableSelectField('priority', task.priority, task, ['low', 'medium', 'high'], 'Priority: ');
+
+        // List with inline editing (select dropdown)
+        const listDiv = createEditableSelectField('list', task.list, task, ['N/A', ...lists], 'List: ');
+
+        // Store task ID in the DOM element for reference
+        taskItem.dataset.id = task.id;
+
+        // Create new subtask button
+        const subtaskButton = createAddSubtaskButton(task, taskContent);
+
+        // Delete button
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "×";
+        deleteButton.className = "delete-task";
+        deleteButton.addEventListener("click", function () {
+            deleteTask(task.id, taskItem);
+        });
+
+        // Assemble the task item
+        metadata.append(dateDiv, reminderDiv, priorityDiv, listDiv);
+        taskContent.append(titleDiv, descDiv, metadata, subtaskButton);
+
+        // Render existing subtasks if any
+        renderSubtasks(task, taskContent);
+
+        taskItemInner.append(taskRing, taskContent);
+        taskItem.append(taskItemInner, deleteButton);
+
+        return taskItem;
+    }
+
+// Update convertToInputDateFormat to better handle different date formats
+    function convertToInputDateFormat(dateString) {
+        if (!dateString || dateString === 'N/A') return '';
+
+        // If already in yyyy-mm-dd format
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+            return dateString;
+        }
+
+        // Convert from dd/mm/yyyy to yyyy-mm-dd
+        try {
+            const parts = dateString.split('/');
+            if (parts.length === 3) {
+                // Make sure we have year-month-day
+                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+
+            // If not in expected format, try parsing as a date
+            const date = new Date(dateString);
+            if (!isNaN(date.getTime())) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+        } catch (e) {
+            // If any error occurs, return empty string
+            console.error("Error converting date format:", e);
+        }
+
+        return '';
+    }
+
+// Fix formatDateForComparison to better handle date conversion
+    function formatDateForComparison(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
     function toggleTaskCompletion(task, taskRingElement, taskItemElement) {
