@@ -484,6 +484,41 @@ function initiateGoogleAuth() {
     window.open(authUrl, '_blank', 'width=500,height=600');
 }
 
+// If you're using Express.js
+app.get('/auth/google/callback', (req, res) => {
+    const code = req.query.code;
+    // Exchange the code for tokens
+    // Store the tokens in session/database
+
+    // Redirect back to settings page
+    res.redirect('/Settings.html?auth=success');
+});
+
+// Server-side code
+const axios = require('axios');
+
+async function exchangeCodeForTokens(authCode, redirectUri) {
+    const tokenEndpoint = 'https://oauth2.googleapis.com/token';
+    const clientId = '233840126993-uned9hu7bedgpnursvggctc8c0qvussl.apps.googleusercontent.com';
+    const clientSecret = 'YOUR_CLIENT_SECRET'; // You need this from Google Cloud Console
+
+    try {
+        const response = await axios.post(tokenEndpoint, {
+            code: authCode,
+            client_id: clientId,
+            client_secret: clientSecret,
+            redirect_uri: redirectUri,
+            grant_type: 'authorization_code'
+        });
+
+        return response.data; // Contains access_token, refresh_token, etc.
+    } catch (error) {
+        console.error('Error exchanging code for tokens:', error);
+        throw error;
+    }
+}
+
+
 function submitGoogleAuthCode() {
     const authCode = document.getElementById('google-auth-code').value.trim();
 
